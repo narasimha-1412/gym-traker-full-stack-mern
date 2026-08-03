@@ -8,7 +8,7 @@ const confirm = useConfirmStore()
   <v-dialog
     :model-value="confirm.open"
     max-width="380"
-    @update:model-value="(v) => !v && confirm.settle(false)"
+    @update:model-value="v => !v && confirm.settle(false)"
   >
     <v-card class="dlg-card">
       <v-card-title class="dlg-title">{{ confirm.title }}</v-card-title>
@@ -16,11 +16,7 @@ const confirm = useConfirmStore()
         {{ confirm.message }}
       </v-card-text>
       <v-card-actions class="dlg-actions">
-        <v-btn
-          variant="outlined"
-          class="btn-ghost"
-          @click="confirm.settle(false)"
-        >
+        <v-btn variant="outlined" class="btn-ghost" @click="confirm.settle(false)">
           {{ confirm.cancelLabel }}
         </v-btn>
         <button
@@ -79,7 +75,9 @@ const confirm = useConfirmStore()
   font-weight: 600;
   cursor: pointer;
 
-  &:active { transform: scale(0.97); }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
 .btn-gradient {

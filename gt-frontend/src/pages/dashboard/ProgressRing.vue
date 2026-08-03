@@ -21,7 +21,9 @@ const c = 2 * Math.PI * r
       <circle class="track" cx="36" cy="36" :r="r" />
       <circle
         class="fill"
-        cx="36" cy="36" :r="r"
+        cx="36"
+        cy="36"
+        :r="r"
         :stroke-dasharray="c"
         :stroke-dashoffset="c - (percent / 100) * c"
       />
@@ -35,7 +37,10 @@ const c = 2 * Math.PI * r
   position: relative;
   flex-shrink: 0;
 
-  svg { transform: rotate(-90deg); display: block; }
+  svg {
+    transform: rotate(-90deg);
+    display: block;
+  }
 
   .track {
     fill: none;

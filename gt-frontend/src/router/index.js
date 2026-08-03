@@ -59,7 +59,7 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(to => {
   const app = useAppStore()
 
   if (to.meta.auth && !app.loggedIn) {

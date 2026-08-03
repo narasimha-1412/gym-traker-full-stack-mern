@@ -28,9 +28,7 @@ watch(() => route.params.token, syncToken)
       </div>
 
       <p class="heading">Set new password</p>
-      <p class="sub">
-        Choose a strong password so you can get back to logging sessions.
-      </p>
+      <p class="sub">Choose a strong password so you can get back to logging sessions.</p>
 
       <div class="fields">
         <v-text-field
@@ -104,7 +102,9 @@ watch(() => route.params.token, syncToken)
 }
 
 @keyframes drift {
-  to { transform: translate(20px, 16px) scale(1.08); }
+  to {
+    transform: translate(20px, 16px) scale(1.08);
+  }
 }
 
 .reset-card {
@@ -141,13 +141,23 @@ watch(() => route.params.token, syncToken)
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba($blue, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba($blue, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba($blue, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba($blue, 0);
+  }
 }
 
 @keyframes swing {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(8deg); }
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
 }
 
 .wordmark {
@@ -203,16 +213,24 @@ watch(() => route.params.token, syncToken)
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+  }
   &:hover {
     filter: brightness(1.08);
-    .btn-icon { transform: translateX(4px); }
+    .btn-icon {
+      transform: translateX(4px);
+    }
   }
 }
 
-.btn-icon { transition: transform 0.2s ease; }
+.btn-icon {
+  transition: transform 0.2s ease;
+}
 
 .btn-ghost {
   width: 100%;
@@ -230,22 +248,31 @@ watch(() => route.params.token, syncToken)
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 
   &:hover {
     color: $text;
     border-color: $muted;
     background: $surface-2;
 
-    .back-icon { transform: translateX(-3px); }
+    .back-icon {
+      transform: translateX(-3px);
+    }
   }
 }
 
-.back-icon { transition: transform 0.2s ease; }
+.back-icon {
+  transition: transform 0.2s ease;
+}
 
 :deep(.v-field) {
   border-radius: $radius-btn !important;
   background: $surface-2;
 }
-:deep(.v-field__outline) { --v-field-border-opacity: 0.6; }
+:deep(.v-field__outline) {
+  --v-field-border-opacity: 0.6;
+}
 </style>

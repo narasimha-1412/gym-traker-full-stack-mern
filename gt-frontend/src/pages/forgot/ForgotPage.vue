@@ -20,7 +20,8 @@ const forgot = useForgotStore()
       <template v-if="!forgot.sent">
         <p class="heading">Forgot password?</p>
         <p class="sub">
-          Enter the email linked to your account. We'll send a reset link so you can get back to training.
+          Enter the email linked to your account. We'll send a reset link so you can get back to
+          training.
         </p>
 
         <div class="fields">
@@ -53,12 +54,10 @@ const forgot = useForgotStore()
         <p class="heading">Check your inbox</p>
         <p class="sub sent-msg">
           If an account exists for
-          <span class="mail">{{ forgot.email }}</span>,
-          a reset link is on the way. It may take a minute — check spam if you don't see it.
+          <span class="mail">{{ forgot.email }}</span
+          >, a reset link is on the way. It may take a minute — check spam if you don't see it.
         </p>
-        <p class="hint">
-          Rest up. Your next session starts when you're ready.
-        </p>
+        <p class="hint">Rest up. Your next session starts when you're ready.</p>
 
         <div class="sent-actions">
           <button class="btn-ghost" type="button" @click="forgot.resend()">
@@ -118,7 +117,9 @@ const forgot = useForgotStore()
 }
 
 @keyframes drift {
-  to { transform: translate(20px, 16px) scale(1.08); }
+  to {
+    transform: translate(20px, 16px) scale(1.08);
+  }
 }
 
 .forgot-card {
@@ -155,13 +156,23 @@ const forgot = useForgotStore()
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba($blue, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba($blue, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba($blue, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba($blue, 0);
+  }
 }
 
 @keyframes swing {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(8deg); }
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
 }
 
 .wordmark {
@@ -242,16 +253,24 @@ const forgot = useForgotStore()
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+  }
   &:hover {
     filter: brightness(1.08);
-    .btn-icon { transform: translateX(4px); }
+    .btn-icon {
+      transform: translateX(4px);
+    }
   }
 }
 
-.btn-icon { transition: transform 0.2s ease; }
+.btn-icon {
+  transition: transform 0.2s ease;
+}
 
 .btn-ghost {
   width: 100%;
@@ -269,18 +288,25 @@ const forgot = useForgotStore()
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 
   &:hover {
     color: $text;
     border-color: $muted;
     background: $surface-2;
 
-    .back-icon { transform: translateX(-3px); }
+    .back-icon {
+      transform: translateX(-3px);
+    }
   }
 }
 
-.back-icon { transition: transform 0.2s ease; }
+.back-icon {
+  transition: transform 0.2s ease;
+}
 
 .sent-actions {
   margin-top: 20px;
@@ -310,5 +336,7 @@ const forgot = useForgotStore()
   border-radius: $radius-btn !important;
   background: $surface-2;
 }
-:deep(.v-field__outline) { --v-field-border-opacity: 0.6; }
+:deep(.v-field__outline) {
+  --v-field-border-opacity: 0.6;
+}
 </style>

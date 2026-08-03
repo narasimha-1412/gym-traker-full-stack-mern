@@ -14,7 +14,8 @@ const signup = useSignupStore()
         <p class="eyebrow">Why IronLog</p>
         <h2 class="benefits-title">Train with clarity</h2>
         <p class="benefits-sub">
-          A focused gym tracker for routines, weights, and workout progress — built for the phone in your pocket.
+          A focused gym tracker for routines, weights, and workout progress — built for the phone in
+          your pocket.
         </p>
         <ul class="benefit-list">
           <li v-for="b in signup.benefits" :key="b.title" class="benefit">
@@ -115,7 +116,9 @@ const signup = useSignupStore()
 }
 
 @keyframes drift {
-  to { transform: translate(20px, 16px) scale(1.08); }
+  to {
+    transform: translate(20px, 16px) scale(1.08);
+  }
 }
 
 .layout {
@@ -246,13 +249,23 @@ const signup = useSignupStore()
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba($blue, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba($blue, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba($blue, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba($blue, 0);
+  }
 }
 
 @keyframes swing {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(8deg); }
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
 }
 
 .wordmark {
@@ -307,16 +320,24 @@ const signup = useSignupStore()
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+  }
   &:hover {
     filter: brightness(1.08);
-    .btn-icon { transform: translateX(4px); }
+    .btn-icon {
+      transform: translateX(4px);
+    }
   }
 }
 
-.btn-icon { transition: transform 0.2s ease; }
+.btn-icon {
+  transition: transform 0.2s ease;
+}
 
 .login-link {
   margin: 18px 0 0;
@@ -335,5 +356,7 @@ const signup = useSignupStore()
   border-radius: $radius-btn !important;
   background: $surface-2;
 }
-:deep(.v-field__outline) { --v-field-border-opacity: 0.6; }
+:deep(.v-field__outline) {
+  --v-field-border-opacity: 0.6;
+}
 </style>

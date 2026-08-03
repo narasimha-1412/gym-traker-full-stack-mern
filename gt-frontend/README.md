@@ -12,6 +12,14 @@ npm run dev
 npm run build
 ```
 
+## Formatting
+
+Root Prettier config (`.prettierrc.json`) applies to this app. Format from the monorepo root:
+
+```bash
+npm run format
+```
+
 ## Docker
 
 From the parent folder (`gym-traker-full-stack-mern`):
@@ -148,33 +156,33 @@ gt-frontend/
 
 ## Routes
 
-| Path | Name | Page | Access |
-|------|------|------|--------|
-| `/login` | `login` | `LoginPage` | Guest |
-| `/signup` | `signup` | `SignupPage` | Guest |
-| `/forgot` | `forgot` | `ForgotPage` | Public |
-| `/reset/:token` | `reset` | `ResetPage` | Public |
-| `/` | `dashboard` | `DashboardPage` | Auth |
-| `/workout/:routineId` | `workout` | `WorkoutPage` | Auth |
-| `/settings` | `settings` | `SettingsPage` | Auth |
+| Path                  | Name        | Page            | Access |
+| --------------------- | ----------- | --------------- | ------ |
+| `/login`              | `login`     | `LoginPage`     | Guest  |
+| `/signup`             | `signup`    | `SignupPage`    | Guest  |
+| `/forgot`             | `forgot`    | `ForgotPage`    | Public |
+| `/reset/:token`       | `reset`     | `ResetPage`     | Public |
+| `/`                   | `dashboard` | `DashboardPage` | Auth   |
+| `/workout/:routineId` | `workout`   | `WorkoutPage`   | Auth   |
+| `/settings`           | `settings`  | `SettingsPage`  | Auth   |
 
 Unknown paths redirect to `/`.
 
 ## Page ↔ store map
 
-| Page | Store |
-|------|--------|
-| `pages/login` | `login.store.js` |
-| `pages/signup` | `signup.store.js` |
-| `pages/forgot` | `forgot.store.js` |
-| `pages/reset` | `reset.store.js` |
-| `pages/dashboard` | `dashboard.store.js` |
-| `pages/workout` | `workout.store.js` |
-| `pages/settings` | `settings.store.js` |
-| App shell / session / nav | `app.store.js` |
-| Global toasts | `snackbar.store.js` |
-| Global loader | `loader.store.js` |
-| Confirm dialogs | `confirm.store.js` |
+| Page                      | Store                |
+| ------------------------- | -------------------- |
+| `pages/login`             | `login.store.js`     |
+| `pages/signup`            | `signup.store.js`    |
+| `pages/forgot`            | `forgot.store.js`    |
+| `pages/reset`             | `reset.store.js`     |
+| `pages/dashboard`         | `dashboard.store.js` |
+| `pages/workout`           | `workout.store.js`   |
+| `pages/settings`          | `settings.store.js`  |
+| App shell / session / nav | `app.store.js`       |
+| Global toasts             | `snackbar.store.js`  |
+| Global loader             | `loader.store.js`    |
+| Confirm dialogs           | `confirm.store.js`   |
 
 ## Feature notes
 

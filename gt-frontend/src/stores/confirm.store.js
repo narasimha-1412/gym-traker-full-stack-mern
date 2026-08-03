@@ -12,14 +12,8 @@ export const useConfirmStore = defineStore('confirm', {
   }),
 
   actions: {
-    ask({
-      title,
-      message,
-      confirmLabel = 'Delete',
-      cancelLabel = 'Cancel',
-      danger = true,
-    } = {}) {
-      return new Promise((resolve) => {
+    ask({ title, message, confirmLabel = 'Delete', cancelLabel = 'Cancel', danger = true } = {}) {
+      return new Promise(resolve => {
         this.title = title || 'Are you sure?'
         this.message = message || ''
         this.confirmLabel = confirmLabel

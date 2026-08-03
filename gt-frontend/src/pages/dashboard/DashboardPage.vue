@@ -26,7 +26,14 @@ const settings = useSettingsStore()
             <v-avatar v-bind="props" size="36" class="avatar">{{ app.user.avatar }}</v-avatar>
           </template>
         </v-tooltip>
-        <v-btn icon variant="text" size="small" class="gear" aria-label="Settings" @click="settings.enter()">
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          class="gear"
+          aria-label="Settings"
+          @click="settings.enter()"
+        >
           <v-icon icon="mdi-cog-outline" class="spin-hover" />
         </v-btn>
       </div>
@@ -55,13 +62,7 @@ const settings = useSettingsStore()
       </div>
 
       <v-row dense>
-        <v-col
-          v-for="r in dash.routines"
-          :key="r.id"
-          cols="12"
-          sm="6"
-          md="4"
-        >
+        <v-col v-for="r in dash.routines" :key="r.id" cols="12" sm="6" md="4">
           <RoutineCard
             :routine="r"
             @toggle="dash.toggleRoutine"
@@ -101,7 +102,7 @@ const settings = useSettingsStore()
       :model-value="dash.editOpen"
       max-width="400"
       content-class="dlg"
-      @update:model-value="(v) => !v && dash.closeEdit()"
+      @update:model-value="v => !v && dash.closeEdit()"
     >
       <v-card class="dlg-card">
         <v-card-title class="dlg-title">Rename routine</v-card-title>
@@ -180,8 +181,12 @@ const settings = useSettingsStore()
   font-weight: 700;
 }
 
-.spin-hover { transition: transform 0.4s ease; }
-.gear:hover .spin-hover { transform: rotate(90deg); }
+.spin-hover {
+  transition: transform 0.4s ease;
+}
+.gear:hover .spin-hover {
+  transform: rotate(90deg);
+}
 
 .content {
   padding: 16px;
@@ -212,7 +217,9 @@ const settings = useSettingsStore()
 
   &:hover {
     color: $blue !important;
-    .reset-icon { transform: rotate(-180deg); }
+    .reset-icon {
+      transform: rotate(-180deg);
+    }
   }
 }
 
@@ -259,13 +266,23 @@ const settings = useSettingsStore()
   animation: fab-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition: transform 0.2s ease;
 
-  &:hover { transform: scale(1.08) rotate(90deg); }
-  &:active { transform: scale(0.95); }
+  &:hover {
+    transform: scale(1.08) rotate(90deg);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 @keyframes fab-in {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .dlg-card {
@@ -302,7 +319,9 @@ const settings = useSettingsStore()
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   cursor: pointer;
-  &:active { transform: scale(0.97); }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
 :deep(.v-field) {

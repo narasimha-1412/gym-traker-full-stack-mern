@@ -10,31 +10,81 @@ export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     routines: [
       {
-        id: 1, title: 'Push Day', done: true,
+        id: 1,
+        title: 'Push Day',
+        done: true,
         exercises: [
-          { id: 11, name: 'Bench Press', weight: '80', description: '4 sets · controlled tempo', done: true },
-          { id: 12, name: 'Overhead Press', weight: '45', description: '3 sets · full range', done: false },
+          {
+            id: 11,
+            name: 'Bench Press',
+            weight: '80',
+            description: '4 sets · controlled tempo',
+            done: true,
+          },
+          {
+            id: 12,
+            name: 'Overhead Press',
+            weight: '45',
+            description: '3 sets · full range',
+            done: false,
+          },
         ],
       },
       {
-        id: 2, title: 'Pull Day', done: false,
+        id: 2,
+        title: 'Pull Day',
+        done: false,
         exercises: [
-          { id: 21, name: 'Deadlift', weight: '120', description: '3 sets · hinge focus', done: false },
-          { id: 22, name: 'Barbell Row', weight: '70', description: '4 sets · squeeze top', done: false },
+          {
+            id: 21,
+            name: 'Deadlift',
+            weight: '120',
+            description: '3 sets · hinge focus',
+            done: false,
+          },
+          {
+            id: 22,
+            name: 'Barbell Row',
+            weight: '70',
+            description: '4 sets · squeeze top',
+            done: false,
+          },
           { id: 23, name: 'Pull-ups', weight: '', description: '3 sets to failure', done: false },
         ],
       },
       {
-        id: 3, title: 'Leg Day', done: false,
+        id: 3,
+        title: 'Leg Day',
+        done: false,
         exercises: [
-          { id: 31, name: 'Back Squat', weight: '100', description: '5 sets · depth priority', done: false },
-          { id: 32, name: 'Romanian DL', weight: '80', description: '3 sets · hamstring stretch', done: false },
+          {
+            id: 31,
+            name: 'Back Squat',
+            weight: '100',
+            description: '5 sets · depth priority',
+            done: false,
+          },
+          {
+            id: 32,
+            name: 'Romanian DL',
+            weight: '80',
+            description: '3 sets · hamstring stretch',
+            done: false,
+          },
         ],
       },
       {
-        id: 4, title: 'Core & Mobility', done: false,
+        id: 4,
+        title: 'Core & Mobility',
+        done: false,
         exercises: [
-          { id: 41, name: 'Hanging Knee Raise', weight: '', description: '3 sets · slow', done: false },
+          {
+            id: 41,
+            name: 'Hanging Knee Raise',
+            weight: '',
+            description: '3 sets · slow',
+            done: false,
+          },
         ],
       },
     ],
@@ -46,8 +96,8 @@ export const useDashboardStore = defineStore('dashboard', {
   }),
 
   getters: {
-    doneCount: (state) => state.routines.filter(r => r.done).length,
-    totalCount: (state) => state.routines.length,
+    doneCount: state => state.routines.filter(r => r.done).length,
+    totalCount: state => state.routines.length,
     progress() {
       return this.totalCount ? Math.round((this.doneCount / this.totalCount) * 100) : 0
     },
@@ -56,7 +106,7 @@ export const useDashboardStore = defineStore('dashboard', {
   actions: {
     getById(id) {
       const n = Number(id)
-      return this.routines.find((r) => r.id === n || r.id === id)
+      return this.routines.find(r => r.id === n || r.id === id)
     },
 
     async toggleRoutine(id) {
@@ -132,7 +182,7 @@ export const useDashboardStore = defineStore('dashboard', {
       if (!ok) return
 
       await useLoaderStore().wrap(() => {
-        this.routines = this.routines.filter((item) => item.id !== id)
+        this.routines = this.routines.filter(item => item.id !== id)
         useSnackbarStore().success(`"${r.title}" deleted`)
       })
     },
@@ -157,7 +207,9 @@ export const useDashboardStore = defineStore('dashboard', {
       if (!ok) return
 
       await useLoaderStore().wrap(() => {
-        this.routines.forEach(r => { r.done = false })
+        this.routines.forEach(r => {
+          r.done = false
+        })
         useSnackbarStore().success('Workout progress reset')
       })
     },

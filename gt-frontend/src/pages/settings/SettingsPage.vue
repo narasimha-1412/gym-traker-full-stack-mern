@@ -143,8 +143,12 @@ const settings = useSettingsStore()
   padding-inline-end: 12px;
 }
 
-.back-icon { transition: transform 0.2s ease; }
-.bar :deep(.v-btn:hover) .back-icon { transform: translateX(-3px); }
+.back-icon {
+  transition: transform 0.2s ease;
+}
+.bar :deep(.v-btn:hover) .back-icon {
+  transform: translateX(-3px);
+}
 
 .title {
   font-family: 'Space Grotesk', sans-serif !important;
@@ -166,16 +170,24 @@ const settings = useSettingsStore()
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s, transform 0.15s;
+  transition:
+    filter 0.15s,
+    transform 0.15s;
 
   &:hover {
     filter: brightness(1.1);
-    .logout-icon { transform: translateX(2px); }
+    .logout-icon {
+      transform: translateX(2px);
+    }
   }
-  &:active { transform: scale(0.97); }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
-.logout-icon { transition: transform 0.2s ease; }
+.logout-icon {
+  transition: transform 0.2s ease;
+}
 
 .content {
   padding: 16px;
@@ -204,7 +216,9 @@ const settings = useSettingsStore()
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 
   &.active {
     background: $surface-2;
@@ -268,7 +282,10 @@ const settings = useSettingsStore()
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
 
   &.active {
     border-color: $blue;
@@ -291,9 +308,15 @@ const settings = useSettingsStore()
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s, transform 0.15s;
-  &:active { transform: scale(0.98); }
-  &:hover { filter: brightness(1.08); }
+  transition:
+    filter 0.15s,
+    transform 0.15s;
+  &:active {
+    transform: scale(0.98);
+  }
+  &:hover {
+    filter: brightness(1.08);
+  }
 }
 
 :deep(.v-field) {

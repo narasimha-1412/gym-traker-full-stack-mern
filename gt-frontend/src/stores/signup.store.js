@@ -10,9 +10,21 @@ export const useSignupStore = defineStore('signup', {
     password: '',
     showPassword: false,
     benefits: [
-      { icon: 'mdi-calendar-check', title: 'Workout progress', text: 'See routines completed at a glance and stay on track.' },
-      { icon: 'mdi-dumbbell', title: 'Workout logging', text: 'Save exercises, weights, and notes for every session.' },
-      { icon: 'mdi-trending-up', title: 'Build consistency', text: 'Mark work done and keep momentum without clutter.' },
+      {
+        icon: 'mdi-calendar-check',
+        title: 'Workout progress',
+        text: 'See routines completed at a glance and stay on track.',
+      },
+      {
+        icon: 'mdi-dumbbell',
+        title: 'Workout logging',
+        text: 'Save exercises, weights, and notes for every session.',
+      },
+      {
+        icon: 'mdi-trending-up',
+        title: 'Build consistency',
+        text: 'Mark work done and keep momentum without clutter.',
+      },
     ],
   }),
 

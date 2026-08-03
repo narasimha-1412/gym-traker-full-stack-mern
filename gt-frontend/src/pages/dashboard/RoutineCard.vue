@@ -26,7 +26,9 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
     </div>
     <div class="meta">
       <p class="title">{{ routine.title }}</p>
-      <p class="sub">{{ routine.exercises.length }} exercise{{ routine.exercises.length === 1 ? '' : 's' }}</p>
+      <p class="sub">
+        {{ routine.exercises.length }} exercise{{ routine.exercises.length === 1 ? '' : 's' }}
+      </p>
     </div>
     <div class="menu-wrap" @click.stop>
       <v-menu location="bottom end">
@@ -74,10 +76,15 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
   border: 1px solid $stroke;
   border-radius: $radius;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+  }
 
   @media (hover: hover) {
     &:hover {
@@ -85,7 +92,9 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
       border-color: rgba($blue, 0.45);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 
-      .menu-btn { color: $text !important; }
+      .menu-btn {
+        color: $text !important;
+      }
     }
   }
 
@@ -94,7 +103,9 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
       text-decoration: line-through;
       color: $muted;
     }
-    .accent { opacity: 0.35; }
+    .accent {
+      opacity: 0.35;
+    }
   }
 }
 
@@ -108,7 +119,9 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
   transition: opacity 0.2s;
 }
 
-.body { flex-shrink: 0; }
+.body {
+  flex-shrink: 0;
+}
 
 .meta {
   flex: 1;

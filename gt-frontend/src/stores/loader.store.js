@@ -22,7 +22,7 @@ export const useLoaderStore = defineStore('loader', {
     async wrap(fn, ms = DEFAULT_MS) {
       this.show()
       try {
-        await new Promise((resolve) => setTimeout(resolve, ms))
+        await new Promise(resolve => setTimeout(resolve, ms))
         return await fn()
       } finally {
         this.hide()

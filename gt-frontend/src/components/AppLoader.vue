@@ -4,11 +4,7 @@ import { useLoaderStore } from '@/stores/loader.store'
 
 const loader = useLoaderStore()
 
-const icons = [
-  'mdi-dumbbell',
-  'mdi-weight-lifter',
-  'mdi-kettlebell',
-]
+const icons = ['mdi-dumbbell', 'mdi-weight-lifter', 'mdi-kettlebell']
 
 const index = ref(0)
 let timer
@@ -30,11 +26,11 @@ function stopCycle() {
 
 watch(
   () => loader.active,
-  (active) => {
+  active => {
     if (active) startCycle()
     else stopCycle()
   },
-  { immediate: true },
+  { immediate: true }
 )
 
 onUnmounted(stopCycle)
@@ -53,12 +49,7 @@ onUnmounted(stopCycle)
       <div class="pulse" aria-hidden="true" />
       <div class="icon-wrap">
         <Transition name="equip" mode="out-in">
-          <v-icon
-            :key="icons[index]"
-            :icon="icons[index]"
-            size="36"
-            class="equip-icon"
-          />
+          <v-icon :key="icons[index]" :icon="icons[index]" size="36" class="equip-icon" />
         </Transition>
       </div>
     </div>
@@ -121,7 +112,9 @@ onUnmounted(stopCycle)
 
 .equip-enter-active,
 .equip-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .equip-enter-from {

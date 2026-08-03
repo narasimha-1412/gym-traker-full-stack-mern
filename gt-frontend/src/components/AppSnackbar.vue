@@ -40,19 +40,27 @@ const snack = useSnackbarStore()
 
   &.success :deep(.v-snackbar__wrapper) {
     border-color: rgba(#34d399, 0.45);
-    .icon { color: #34d399; }
+    .icon {
+      color: #34d399;
+    }
   }
   &.error :deep(.v-snackbar__wrapper) {
     border-color: rgba($red, 0.5);
-    .icon { color: $red; }
+    .icon {
+      color: $red;
+    }
   }
   &.warning :deep(.v-snackbar__wrapper) {
     border-color: rgba(#f59e0b, 0.5);
-    .icon { color: #f59e0b; }
+    .icon {
+      color: #f59e0b;
+    }
   }
   &.info :deep(.v-snackbar__wrapper) {
     border-color: rgba($blue, 0.45);
-    .icon { color: $blue; }
+    .icon {
+      color: $blue;
+    }
   }
 }
 

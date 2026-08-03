@@ -1,0 +1,49 @@
+---
+description: Match project Prettier formatting when writing or editing code
+alwaysApply: true
+---
+
+# Prettier formatting
+
+Follow root `.prettierrc.json` exactly when generating or editing code. Do not invent a different style.
+
+## Rules
+
+- No semicolons (`semi: false`)
+- Single quotes (`singleQuote: true`)
+- 2-space indent, no tabs
+- Trailing commas where valid in ES5 (`trailingComma: "es5"`)
+- Print width 100
+- `arrowParens: "avoid"` — omit parens for a single arrow param (`x => x`)
+- `endOfLine: "lf"`
+- Vue: do not indent content inside `<script>` / `<style>` (`vueIndentScriptAndStyle: false`)
+
+## Examples
+
+```js
+// ✅ GOOD
+import { env } from './config/env.js'
+
+export const useLoginStore = defineStore('login', {
+  state: () => ({
+    email: '',
+  }),
+  actions: {
+    goSignup() {
+      useAppStore().goSignup()
+    },
+  },
+})
+
+start().catch(err => {
+  console.error(err.message)
+})
+
+// ❌ BAD — double quotes, semicolons, unnecessary arrow parens
+import { env } from "./config/env.js";
+start().catch((err) => {
+  console.error(err.message);
+});
+```
+
+After edits, keep formatting Prettier-clean so format-on-save does not churn the file.

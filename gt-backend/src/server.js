@@ -9,7 +9,7 @@ async function start() {
   })
 }
 
-start().catch((err) => {
+start().catch(err => {
   console.error('Failed to start server:', err.message)
   process.exit(1)
 })

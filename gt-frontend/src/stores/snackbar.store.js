@@ -16,7 +16,7 @@ export const useSnackbarStore = defineStore('snackbar', {
   }),
 
   getters: {
-    icon: (state) => ICONS[state.type] || ICONS.info,
+    icon: state => ICONS[state.type] || ICONS.info,
   },
 
   actions: {
@@ -25,13 +25,23 @@ export const useSnackbarStore = defineStore('snackbar', {
       this.type = t
       this.timeout = ms
       this.open = false
-      requestAnimationFrame(() => { this.open = true })
+      requestAnimationFrame(() => {
+        this.open = true
+      })
     },
 
-    success(msg) { this.show(msg, 'success') },
-    error(msg) { this.show(msg, 'error') },
-    warning(msg) { this.show(msg, 'warning') },
-    info(msg) { this.show(msg, 'info') },
+    success(msg) {
+      this.show(msg, 'success')
+    },
+    error(msg) {
+      this.show(msg, 'error')
+    },
+    warning(msg) {
+      this.show(msg, 'warning')
+    },
+    info(msg) {
+      this.show(msg, 'info')
+    },
 
     close() {
       this.open = false

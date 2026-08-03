@@ -12,6 +12,14 @@ npm run dev
 npm start
 ```
 
+## Formatting
+
+Root Prettier config (`.prettierrc.json`) applies to this app. Format from the monorepo root:
+
+```bash
+npm run format
+```
+
 ## Docker
 
 From the parent folder (`gym-traker-full-stack-mern`):
@@ -33,10 +41,10 @@ See parent `compose.yaml`. This service is built from `Dockerfile` in this folde
 
 ### Environment
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `MONGODB_URI` | Yes | — | MongoDB Atlas connection string |
-| `PORT` | No | `5000` | HTTP server port |
+| Variable      | Required | Default | Description                     |
+| ------------- | -------- | ------- | ------------------------------- |
+| `MONGODB_URI` | Yes      | —       | MongoDB Atlas connection string |
+| `PORT`        | No       | `5000`  | HTTP server port                |
 
 Example:
 
@@ -61,12 +69,12 @@ Never commit `.env`.
 
 ### Layers (when adding features)
 
-| Folder | Role |
-|--------|------|
-| `src/models/` | Mongoose schemas |
-| `src/controllers/` | Request handlers |
-| `src/routes/` | Express routers |
-| `src/middleware/` | Shared middleware (auth, errors, …) |
+| Folder             | Role                                |
+| ------------------ | ----------------------------------- |
+| `src/models/`      | Mongoose schemas                    |
+| `src/controllers/` | Request handlers                    |
+| `src/routes/`      | Express routers                     |
+| `src/middleware/`  | Shared middleware (auth, errors, …) |
 
 - Keep route files thin; put logic in controllers
 - One model file per collection (e.g. `User.js`)

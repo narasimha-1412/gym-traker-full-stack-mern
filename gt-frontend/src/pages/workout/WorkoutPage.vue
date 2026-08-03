@@ -1,45 +1,45 @@
 <script setup>
-import { onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAppStore } from "@/stores/app.store";
-import { useWorkoutStore } from "@/stores/workout.store";
-import { useSnackbarStore } from "@/stores/snackbar.store";
+import { onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAppStore } from '@/stores/app.store'
+import { useWorkoutStore } from '@/stores/workout.store'
+import { useSnackbarStore } from '@/stores/snackbar.store'
 
-const route = useRoute();
-const router = useRouter();
-const app = useAppStore();
-const workout = useWorkoutStore();
+const route = useRoute()
+const router = useRouter()
+const app = useAppStore()
+const workout = useWorkoutStore()
 
 function loadFromRoute() {
-  const id = Number(route.params.routineId);
+  const id = Number(route.params.routineId)
   if (!Number.isFinite(id) || !workout.loadDraft(id)) {
-    useSnackbarStore().error("Routine not found");
-    router.replace({ name: "dashboard" });
+    useSnackbarStore().error('Routine not found')
+    router.replace({ name: 'dashboard' })
   }
 }
 
-onMounted(loadFromRoute);
-watch(() => route.params.routineId, loadFromRoute);
+onMounted(loadFromRoute)
+watch(() => route.params.routineId, loadFromRoute)
 
 function onWeightKeydown(e) {
   const allow = [
-    "Backspace",
-    "Delete",
-    "Tab",
-    "Escape",
-    "Enter",
-    "ArrowLeft",
-    "ArrowRight",
-    "ArrowUp",
-    "ArrowDown",
-    "Home",
-    "End",
-  ];
-  if (allow.includes(e.key)) return;
-  if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
-  if (/^\d$/.test(e.key)) return;
-  if (e.key === "." && !String(workout.dialog.form.weight ?? "").includes(".")) return;
-  e.preventDefault();
+    'Backspace',
+    'Delete',
+    'Tab',
+    'Escape',
+    'Enter',
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowUp',
+    'ArrowDown',
+    'Home',
+    'End',
+  ]
+  if (allow.includes(e.key)) return
+  if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return
+  if (/^\d$/.test(e.key)) return
+  if (e.key === '.' && !String(workout.dialog.form.weight ?? '').includes('.')) return
+  e.preventDefault()
 }
 </script>
 
@@ -63,9 +63,7 @@ function onWeightKeydown(e) {
         >
           Add Exercise
         </v-btn>
-        <span class="count"
-          >{{ workout.draft.exercises.length }} exercises</span
-        >
+        <span class="count">{{ workout.draft.exercises.length }} exercises</span>
       </div>
 
       <div class="panel">
@@ -109,18 +107,14 @@ function onWeightKeydown(e) {
               <div class="cell name-wrap">
                 <p class="cell name">{{ ex.name }}</p>
                 <v-icon
-                  :icon="
-                    workout.expandedId === ex.id
-                      ? 'mdi-chevron-up'
-                      : 'mdi-chevron-down'
-                  "
+                  :icon="workout.expandedId === ex.id ? 'mdi-chevron-up' : 'mdi-chevron-down'"
                   size="18"
                   class="chevron"
                 />
               </div>
 
               <p class="cell weight">
-                {{ ex.weight ? `${ex.weight} ${app.weightUnit}` : "—" }}
+                {{ ex.weight ? `${ex.weight} ${app.weightUnit}` : '—' }}
               </p>
 
               <div class="cell actions" @click.stop>
@@ -157,7 +151,7 @@ function onWeightKeydown(e) {
             <div v-show="workout.expandedId === ex.id" class="detail">
               <p class="detail-label">Description</p>
               <p class="detail-text">
-                {{ ex.description || "No description" }}
+                {{ ex.description || 'No description' }}
               </p>
             </div>
           </div>
@@ -168,7 +162,7 @@ function onWeightKeydown(e) {
     <v-dialog
       :model-value="workout.dialog.open && workout.dialog.type === 'exercise'"
       max-width="420"
-      @update:model-value="(v) => !v && workout.closeDialog()"
+      @update:model-value="v => !v && workout.closeDialog()"
     >
       <v-card class="dlg-card">
         <v-card-title class="dlg-title">{{ workout.dlgTitle }}</v-card-title>
@@ -204,18 +198,9 @@ function onWeightKeydown(e) {
           />
         </v-card-text>
         <v-card-actions class="dlg-actions">
-          <v-btn
-            variant="outlined"
-            class="btn-ghost"
-            @click="workout.closeDialog()"
-            >Cancel</v-btn
-          >
-          <button
-            class="btn-gradient"
-            type="button"
-            @click="workout.saveExercise()"
-          >
-            {{ workout.dialog.mode === "edit" ? "Update" : "Add" }}
+          <v-btn variant="outlined" class="btn-ghost" @click="workout.closeDialog()">Cancel</v-btn>
+          <button class="btn-gradient" type="button" @click="workout.saveExercise()">
+            {{ workout.dialog.mode === 'edit' ? 'Update' : 'Add' }}
           </button>
         </v-card-actions>
       </v-card>
@@ -245,7 +230,7 @@ function onWeightKeydown(e) {
 }
 
 .title {
-  font-family: "Space Grotesk", sans-serif !important;
+  font-family: 'Space Grotesk', sans-serif !important;
   font-weight: 600 !important;
   font-size: 1.05rem !important;
 }
@@ -295,7 +280,7 @@ function onWeightKeydown(e) {
 
   p {
     margin: 12px 0 4px;
-    font-family: "Space Grotesk", sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 600;
     color: $text;
   }
@@ -427,7 +412,7 @@ function onWeightKeydown(e) {
 }
 
 .weight {
-  font-family: "JetBrains Mono", monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -496,7 +481,7 @@ function onWeightKeydown(e) {
   border-radius: $radius-btn;
   background: $gradient;
   color: #fff;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   cursor: pointer;
   &:active {
@@ -511,7 +496,7 @@ function onWeightKeydown(e) {
 }
 
 .dlg-title {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
 }
 .dlg-fields {
