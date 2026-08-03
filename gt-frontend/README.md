@@ -12,6 +12,18 @@ npm run dev
 npm run build
 ```
 
+## Docker
+
+From the parent folder (`gym-traker-full-stack-mern`):
+
+```bash
+docker compose up --build
+docker compose watch
+docker compose down
+```
+
+Vite is configured with `server.host: true` so the container is reachable at `http://localhost:5173`.
+
 ## Conventions
 
 ### Pages
@@ -86,6 +98,8 @@ gt-frontend/
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── Dockerfile
+├── .dockerignore
 ├── README.md
 └── src/
     ├── App.vue

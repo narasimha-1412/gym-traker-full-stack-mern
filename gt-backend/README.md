@@ -12,11 +12,24 @@ npm run dev
 npm start
 ```
 
+## Docker
+
+From the parent folder (`gym-traker-full-stack-mern`):
+
+```bash
+# ensure gt-backend/.env has MONGODB_URI
+docker compose up --build
+docker compose watch
+docker compose down
+```
+
+See parent `compose.yaml`. This service is built from `Dockerfile` in this folder. Compose loads env from `gt-backend/.env`.
+
 ## Setup
 
 1. Copy `.env.example` to `.env` (or create `.env` manually)
 2. Set `MONGODB_URI` to your Atlas connection string
-3. Run `npm run dev`
+3. Run `npm run dev` (local) or use Docker from the parent folder
 
 ### Environment
 
@@ -74,6 +87,8 @@ Never commit `.env`.
 gt-backend/
 ├── package.json
 ├── README.md
+├── Dockerfile
+├── .dockerignore
 ├── .env.example
 ├── .gitignore
 ├── .cursorignore
