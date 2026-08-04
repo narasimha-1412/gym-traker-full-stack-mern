@@ -13,6 +13,7 @@ onMounted(() => {
   tab.value = 'profile'
   show.value = { current: false, next: false, confirm: false }
   settings.loadProfile()
+  if (app.isAdmin()) settings.loadConfigs()
 })
 
 function eyeIcon(key) {
@@ -27,6 +28,11 @@ async function updatePassword() {
   if (await settings.changePassword()) {
     show.value = { current: false, next: false, confirm: false }
   }
+}
+
+function setConfigField(key, value) {
+  const cleaned = String(value ?? '').replace(/\D/g, '')
+  settings.configs[key] = cleaned === '' ? '' : Number(cleaned)
 }
 </script>
 
@@ -45,7 +51,7 @@ async function updatePassword() {
     </v-app-bar>
 
     <div class="content">
-      <div class="tabs" role="tablist">
+      <div class="tabs" :class="{ admin: app.isAdmin() }" role="tablist">
         <button
           type="button"
           role="tab"
@@ -65,6 +71,17 @@ async function updatePassword() {
           @click="tab = 'password'"
         >
           Change password
+        </button>
+        <button
+          v-if="app.isAdmin()"
+          type="button"
+          role="tab"
+          class="tab"
+          :class="{ active: tab === 'configs' }"
+          :aria-selected="tab === 'configs'"
+          @click="tab = 'configs'"
+        >
+          Configs
         </button>
       </div>
 
@@ -115,7 +132,7 @@ async function updatePassword() {
         </button>
       </div>
 
-      <div v-else class="panel">
+      <div v-else-if="tab === 'password'" class="panel">
         <p class="section">Change password</p>
         <div class="fields">
           <v-text-field
@@ -152,6 +169,53 @@ async function updatePassword() {
         </div>
         <button class="btn-gradient" type="button" @click="updatePassword()">
           Update password
+        </button>
+      </div>
+
+      <div v-else-if="tab === 'configs' && app.isAdmin()" class="panel">
+        <p class="section">Configs</p>
+        <p class="hint">Applies to all users. Existing items over a lower limit are kept; new ones are blocked.</p>
+        <div class="fields">
+          <v-text-field
+            :model-value="settings.configs.maxSplits"
+            label="Max splits"
+            type="text"
+            inputmode="numeric"
+            prepend-inner-icon="mdi-view-split-horizontal"
+            rounded="lg"
+            hide-details="auto"
+            hint="1–100"
+            persistent-hint
+            @update:model-value="setConfigField('maxSplits', $event)"
+          />
+          <v-text-field
+            :model-value="settings.configs.maxWorkoutsPerSplit"
+            label="Max workouts per split"
+            type="text"
+            inputmode="numeric"
+            prepend-inner-icon="mdi-dumbbell"
+            rounded="lg"
+            hide-details="auto"
+            hint="1–100"
+            persistent-hint
+            @update:model-value="setConfigField('maxWorkoutsPerSplit', $event)"
+          />
+          <v-text-field
+            :model-value="settings.configs.maxExercisesPerWorkout"
+            label="Max exercises per workout"
+            type="text"
+            inputmode="numeric"
+            prepend-inner-icon="mdi-arm-flex"
+            rounded="lg"
+            hide-details="auto"
+            hint="1–100"
+            persistent-hint
+            @update:model-value="setConfigField('maxExercisesPerWorkout', $event)"
+            @keyup.enter="settings.saveConfigs()"
+          />
+        </div>
+        <button class="btn-gradient" type="button" @click="settings.saveConfigs()">
+          Save configs
         </button>
       </div>
     </div>
@@ -231,6 +295,10 @@ async function updatePassword() {
   background: $surface;
   border: 1px solid $stroke;
   border-radius: $radius-btn;
+
+  &.admin {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .tab {
@@ -240,7 +308,7 @@ async function updatePassword() {
   background: transparent;
   color: $muted;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -277,6 +345,13 @@ async function updatePassword() {
   font-size: 0.95rem;
   font-weight: 600;
   color: $text;
+}
+
+.hint {
+  margin: -6px 0 14px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: $muted;
 }
 
 .unit-block {

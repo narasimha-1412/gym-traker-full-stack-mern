@@ -11,6 +11,11 @@ export const useSettingsStore = defineStore('settings', {
   state: () => ({
     profile: { name: '', email: '', weightUnit: 'kg' },
     pw: { current: '', next: '', confirm: '' },
+    configs: {
+      maxSplits: 20,
+      maxWorkoutsPerSplit: 20,
+      maxExercisesPerWorkout: 20,
+    },
   }),
 
   actions: {
@@ -27,10 +32,15 @@ export const useSettingsStore = defineStore('settings', {
       }
     },
 
+    loadConfigs() {
+      this.configs = useAppStore().getLimits()
+    },
+
     async enter() {
       this.resetForm()
       await useLoaderStore().wrap(() => {
         this.loadProfile()
+        this.loadConfigs()
         useAppStore().goSettings()
       })
     },
@@ -72,6 +82,39 @@ export const useSettingsStore = defineStore('settings', {
           snack.error(apiMessage(err, 'Could not update profile'))
         }
       })
+    },
+
+    async saveConfigs() {
+      const snack = useSnackbarStore()
+      const app = useAppStore()
+      if (!app.isAdmin()) {
+        snack.error('Only admins can update configs')
+        return false
+      }
+
+      const next = {
+        maxSplits: this.configs.maxSplits,
+        maxWorkoutsPerSplit: this.configs.maxWorkoutsPerSplit,
+        maxExercisesPerWorkout: this.configs.maxExercisesPerWorkout,
+      }
+
+      const current = app.getLimits()
+      const same =
+        Number(next.maxSplits) === current.maxSplits &&
+        Number(next.maxWorkoutsPerSplit) === current.maxWorkoutsPerSplit &&
+        Number(next.maxExercisesPerWorkout) === current.maxExercisesPerWorkout
+
+      if (same) {
+        snack.warning('No changes to save')
+        return false
+      }
+
+      await useLoaderStore().wrap(() => {
+        app.setLimits(next)
+        this.loadConfigs()
+        snack.success('Configs updated')
+      })
+      return true
     },
 
     async changePassword() {

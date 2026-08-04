@@ -197,6 +197,12 @@ export const useDashboardStore = defineStore('dashboard', {
         return false
       }
 
+      const { maxSplits } = useAppStore().getLimits()
+      if (this.splits.length >= maxSplits) {
+        snack.warning(`Split limit reached (${maxSplits})`)
+        return false
+      }
+
       await useLoaderStore().wrap(() => {
         const id = ++uid
         this.splits.push({ id, title: name, workouts: [] })
@@ -217,6 +223,12 @@ export const useDashboardStore = defineStore('dashboard', {
       const name = title?.trim()
       if (!name) {
         snack.warning('Enter a workout title')
+        return false
+      }
+
+      const { maxWorkoutsPerSplit } = useAppStore().getLimits()
+      if (split.workouts.length >= maxWorkoutsPerSplit) {
+        snack.warning(`Workout limit reached (${maxWorkoutsPerSplit})`)
         return false
       }
 

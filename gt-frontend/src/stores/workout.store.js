@@ -51,13 +51,21 @@ export const useWorkoutStore = defineStore('workout', {
         return false
       }
 
+      if (mode !== 'edit') {
+        const { maxExercisesPerWorkout } = useAppStore().getLimits()
+        if (this.draft.exercises.length >= maxExercisesPerWorkout) {
+          snack.warning(`Exercise limit reached (${maxExercisesPerWorkout})`)
+          return false
+        }
+      }
+
       const weight = this.sanitizeWeight(form.weight)
       await useLoaderStore().wrap(() => {
         if (mode === 'edit') {
           const ex = this.draft.exercises.find(e => e.id === form.id)
           if (ex)
             Object.assign(ex, {
-              name: form.name,
+              name: form.name.trim(),
               weight,
               description: form.description || '',
             })
