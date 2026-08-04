@@ -2,7 +2,7 @@
 
 Node + Express + MongoDB Atlas API for IronLog.
 
-Currently boots Express and connects to MongoDB Atlas (logs `MongoDB connected` on success). Routes, models, and auth come next.
+Boots Express, connects to MongoDB Atlas, and exposes auth + users APIs (JWT access token + httpOnly refresh cookie).
 
 ## Scripts
 
@@ -10,6 +10,7 @@ Currently boots Express and connects to MongoDB Atlas (logs `MongoDB connected` 
 npm install
 npm run dev
 npm start
+npm run seed:admin
 ```
 
 ## Formatting
@@ -25,7 +26,7 @@ npm run format
 From the parent folder (`gym-traker-full-stack-mern`):
 
 ```bash
-# ensure gt-backend/.env has MONGODB_URI
+# ensure gt-backend/.env has MONGODB_URI + JWT secrets
 docker compose up --build
 docker compose watch
 docker compose logs -f api
@@ -39,21 +40,30 @@ See parent `compose.yaml`. This service is built from `Dockerfile` in this folde
 ## Setup
 
 1. Copy `.env.example` to `.env` (or create `.env` manually)
-2. Set `MONGODB_URI` to your Atlas connection string
-3. Run `npm run dev` (local) or use Docker from the parent folder
+2. Set `MONGODB_URI` and JWT secrets
+3. Run `npm run seed:admin` once to create the default admin
+4. Run `npm run dev` (local) or use Docker from the parent folder
 
 ### Environment
 
-| Variable      | Required | Default | Description                     |
-| ------------- | -------- | ------- | ------------------------------- |
-| `MONGODB_URI` | Yes      | —       | MongoDB Atlas connection string |
-| `PORT`        | No       | `5000`  | HTTP server port                |
+| Variable             | Required | Default | Description                     |
+| -------------------- | -------- | ------- | ------------------------------- |
+| `MONGODB_URI`        | Yes      | —       | MongoDB Atlas connection string |
+| `JWT_ACCESS_SECRET`  | Yes      | —       | Secret for access JWTs          |
+| `JWT_REFRESH_SECRET` | Yes      | —       | Secret for refresh JWTs         |
+| `JWT_ACCESS_EXPIRES` | No       | `2m`    | Access token lifetime           |
+| `JWT_REFRESH_EXPIRES`| No       | `7d`    | Refresh token lifetime          |
+| `PORT`               | No       | `5000`  | HTTP server port                |
 
 Example:
 
 ```env
 PORT=5000
 MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/gym-tracker?retryWrites=true&w=majority
+JWT_ACCESS_SECRET=change-me-access-secret
+JWT_REFRESH_SECRET=change-me-refresh-secret
+JWT_ACCESS_EXPIRES=2m
+JWT_REFRESH_EXPIRES=7d
 ```
 
 Never commit `.env`.
@@ -63,14 +73,14 @@ Never commit `.env`.
 ### Entry points
 
 - `src/server.js` — connect DB, then listen
-- `src/app.js` — Express app (CORS, JSON body, request logger, error handler)
+- `src/app.js` — Express app (CORS + credentials, cookies, JSON, logger, routes, errors)
 
 ### Config
 
 - `src/config/env.js` — load and validate env vars
 - `src/config/db.js` — Mongoose / Atlas connection
 
-### Layers (when adding features)
+### Layers
 
 | Folder             | Role                                |
 | ------------------ | ----------------------------------- |
@@ -78,10 +88,12 @@ Never commit `.env`.
 | `src/controllers/` | Request handlers                    |
 | `src/routes/`      | Express routers                     |
 | `src/middleware/`  | Shared middleware (auth, errors, …) |
+| `src/utils/`       | Tokens, cookies helpers             |
+| `src/scripts/`     | One-off scripts (seed)              |
 
 - Keep route files thin; put logic in controllers
 - One model file per collection (e.g. `User.js`)
-- Mount API routes under `/api` from a root router when routes are added
+- Mount API routes under `/api` from `routes/index.js`
 
 ### Modules
 
@@ -110,17 +122,44 @@ gt-backend/
     │   ├── env.js
     │   └── db.js
     ├── models/
+    │   └── User.js
     ├── controllers/
+    │   ├── auth.controller.js
+    │   └── users.controller.js
     ├── routes/
+    │   ├── index.js
+    │   ├── auth.routes.js
+    │   └── users.routes.js
+    ├── utils/
+    │   ├── tokens.js
+    │   └── cookies.js
+    ├── scripts/
+    │   └── seedAdmin.js
     └── middleware/
         ├── requestLogger.js
-        └── errorHandler.js
+        ├── errorHandler.js
+        └── auth.js
 ```
+
+## API routes
+
+| Method | Path | Access | Notes |
+| ------ | ---- | ------ | ----- |
+| `POST` | `/api/auth/login` | Public | `{ email, password }` → `{ accessToken, user }` + refresh cookie |
+| `POST` | `/api/auth/refresh` | Refresh cookie | → `{ accessToken }` (rotates cookie) |
+| `POST` | `/api/auth/logout` | Public | Clears refresh cookie |
+| `GET` | `/api/auth/me` | Bearer access | → `{ user }` |
+| `GET` | `/api/users` | Admin | List users |
+| `POST` | `/api/users` | Admin | Create user (default password `IronLog123`) |
+| `PATCH` | `/api/users/:id/status` | Admin | Toggle active/disabled |
+| `POST` | `/api/users/:id/reset-password` | Admin | Reset to default password |
 
 ## Feature notes
 
 - **DB**: MongoDB Atlas via Mongoose; success logged as `MongoDB connected`
-- **API**: Express scaffold — CORS + JSON body parser + request/error logging; no routes yet
-- **CORS**: Allows requests with no Origin, or from `localhost` / `127.0.0.1` on any port
+- **CORS**: Allows no Origin or `localhost` / `127.0.0.1` (any port); `credentials: true` for refresh cookies
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack
-- **Auth / workouts**: not implemented yet (will land under `models`, `routes`, `controllers`)
+- **Auth**: Access JWT (default 2m, send as `Authorization: Bearer`); refresh JWT in `httpOnly` cookie `refreshToken` (path `/api/auth`)
+- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt
+- **Seed**: `npm run seed:admin` → `alex@rivera.com` / `IronLog123` (admin)
+- **Workouts**: not implemented yet
