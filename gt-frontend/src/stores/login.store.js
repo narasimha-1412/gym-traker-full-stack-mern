@@ -50,10 +50,6 @@ export const useLoginStore = defineStore('login', {
       })
     },
 
-    goForgot() {
-      useAppStore().goForgot()
-    },
-
     toggleShowPassword() {
       this.showPassword = !this.showPassword
     },

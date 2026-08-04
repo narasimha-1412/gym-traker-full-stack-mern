@@ -21,14 +21,6 @@ export const useAppStore = defineStore('app', {
       this.router.push({ name: 'login' })
     },
 
-    goForgot() {
-      this.router.push({ name: 'forgot' })
-    },
-
-    goReset(token = 'demo-token') {
-      this.router.push({ name: 'reset', params: { token } })
-    },
-
     goDashboard() {
       this.router.push({ name: 'dashboard' })
     },

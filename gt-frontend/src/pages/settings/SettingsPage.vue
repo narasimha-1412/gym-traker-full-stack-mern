@@ -95,15 +95,6 @@ const settings = useSettingsStore()
         <p class="section">Change password</p>
         <div class="fields">
           <v-text-field
-            v-model="settings.pw.old"
-            label="Old password"
-            :type="settings.show.old ? 'text' : 'password'"
-            prepend-inner-icon="mdi-lock-outline"
-            :append-inner-icon="settings.eye('old')"
-            rounded="lg"
-            @click:append-inner="settings.toggleShow('old')"
-          />
-          <v-text-field
             v-model="settings.pw.next"
             label="New password"
             :type="settings.show.next ? 'text' : 'password'"

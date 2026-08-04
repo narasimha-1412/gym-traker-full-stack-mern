@@ -9,14 +9,14 @@ export const useSettingsStore = defineStore('settings', {
   state: () => ({
     tab: 'profile', // profile | password
     profile: { name: '', email: '', weightUnit: 'kg' },
-    pw: { old: '', next: '', confirm: '' },
-    show: { old: false, next: false, confirm: false },
+    pw: { next: '', confirm: '' },
+    show: { next: false, confirm: false },
   }),
 
   actions: {
     resetForm() {
-      this.pw = { old: '', next: '', confirm: '' }
-      this.show = { old: false, next: false, confirm: false }
+      this.pw = { next: '', confirm: '' }
+      this.show = { next: false, confirm: false }
     },
 
     loadProfile() {
@@ -72,26 +72,22 @@ export const useSettingsStore = defineStore('settings', {
 
     async changePassword() {
       const snack = useSnackbarStore()
-      const { old, next, confirm } = this.pw
-      if (!old || !next || !confirm) {
-        snack.warning('Fill in all password fields')
+      const { next, confirm } = this.pw
+      if (!next || !confirm) {
+        snack.warning('Fill in both password fields')
         return
       }
       if (next !== confirm) {
-        snack.error('New passwords do not match')
+        snack.error('Passwords do not match')
         return
       }
       if (next.length < 6) {
-        snack.warning('New password must be at least 6 characters')
-        return
-      }
-      if (old === next) {
-        snack.warning('New password must be different from the old one')
+        snack.warning('Password must be at least 6 characters')
         return
       }
 
       await useLoaderStore().wrap(() => {
-        this.pw = { old: '', next: '', confirm: '' }
+        this.resetForm()
         snack.success('Password updated')
       })
     },

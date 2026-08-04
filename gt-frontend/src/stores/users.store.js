@@ -71,6 +71,11 @@ export const useUsersStore = defineStore('users', {
       })
     },
 
+    resetPassword() {
+      const snack = useSnackbarStore()
+      snack.success('Password reset successfully')
+    },
+
     async copyEmail(email) {
       const snack = useSnackbarStore()
       try {
@@ -78,6 +83,16 @@ export const useUsersStore = defineStore('users', {
         snack.success('Email copied')
       } catch {
         snack.error('Could not copy email')
+      }
+    },
+
+    async copyDefaultPassword() {
+      const snack = useSnackbarStore()
+      try {
+        await navigator.clipboard.writeText(DEFAULT_PASSWORD)
+        snack.success('Default password copied')
+      } catch {
+        snack.error('Could not copy password')
       }
     },
   },

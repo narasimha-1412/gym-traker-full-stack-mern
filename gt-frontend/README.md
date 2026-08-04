@@ -63,7 +63,6 @@ Vite is configured with `server.host: true` so the container is reachable at `ht
 - Router: `src/router/index.js` (history mode)
 - Auth routes require `app.loggedIn`; guest routes (`/login`) redirect when already logged in
 - Admin routes (`/users`) require `app.isAdmin`
-- `/forgot` and `/reset/:token` stay public (email-link friendly)
 - Navigate via `app.goLogin()`, `app.goDashboard()`, `app.openWorkout(id)`, etc. (or `router.push`)
 
 ### Snackbars
@@ -126,8 +125,6 @@ gt-frontend/
     │   ├── loader.store.js
     │   ├── confirm.store.js
     │   ├── login.store.js
-    │   ├── forgot.store.js
-    │   ├── reset.store.js
     │   ├── dashboard.store.js
     │   ├── workout.store.js
     │   ├── settings.store.js
@@ -135,10 +132,6 @@ gt-frontend/
     ├── pages/
     │   ├── login/
     │   │   └── LoginPage.vue
-    │   ├── forgot/
-    │   │   └── ForgotPage.vue
-    │   ├── reset/
-    │   │   └── ResetPage.vue
     │   ├── dashboard/
     │   │   ├── DashboardPage.vue
     │   │   ├── ProgressRing.vue
@@ -157,15 +150,13 @@ gt-frontend/
 
 ## Routes
 
-| Path                  | Name        | Page            | Access      |
-| --------------------- | ----------- | --------------- | ----------- |
-| `/login`              | `login`     | `LoginPage`     | Guest       |
-| `/forgot`             | `forgot`    | `ForgotPage`    | Public      |
-| `/reset/:token`       | `reset`     | `ResetPage`     | Public      |
-| `/`                   | `dashboard` | `DashboardPage` | Auth        |
-| `/workout/:routineId` | `workout`   | `WorkoutPage`   | Auth        |
-| `/settings`           | `settings`  | `SettingsPage`  | Auth        |
-| `/users`              | `users`     | `UsersPage`     | Auth+Admin  |
+| Path                  | Name        | Page            | Access     |
+| --------------------- | ----------- | --------------- | ---------- |
+| `/login`              | `login`     | `LoginPage`     | Guest      |
+| `/`                   | `dashboard` | `DashboardPage` | Auth       |
+| `/workout/:routineId` | `workout`   | `WorkoutPage`   | Auth       |
+| `/settings`           | `settings`  | `SettingsPage`  | Auth       |
+| `/users`              | `users`     | `UsersPage`     | Auth+Admin |
 
 Unknown paths redirect to `/`.
 
@@ -174,8 +165,6 @@ Unknown paths redirect to `/`.
 | Page                      | Store                |
 | ------------------------- | -------------------- |
 | `pages/login`             | `login.store.js`     |
-| `pages/forgot`            | `forgot.store.js`    |
-| `pages/reset`             | `reset.store.js`     |
 | `pages/dashboard`         | `dashboard.store.js` |
 | `pages/workout`           | `workout.store.js`   |
 | `pages/settings`          | `settings.store.js`  |
@@ -187,8 +176,8 @@ Unknown paths redirect to `/`.
 
 ## Feature notes
 
-- **Auth**: login only (admin creates users); forgot (email + confirmation + resend), reset password via `/reset/:token`
-- **Users** (`/users`, admin): list users, create with default password `IronLog123`, copy email, enable/disable (disabled users cannot log in)
+- **Auth**: login only (admin creates users); default password `IronLog123`
+- **Users** (`/users`, admin): create user, copy default password / email, reset password (snack — use default), enable/disable (disabled users cannot log in)
 - **Dashboard** (`/`): routines list, progress ring, add / rename / delete routine, reset progress
 - **Workout**: exercises CRUD, mark done, weight unit from settings
-- **Settings**: profile (username, kg/lb), change password, log out
+- **Settings**: profile (username, kg/lb), change password (new + confirm, mock until API), log out

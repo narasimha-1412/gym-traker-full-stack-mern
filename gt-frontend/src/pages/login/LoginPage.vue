@@ -40,9 +40,6 @@ const login = useLoginStore()
           @keyup.enter="login.submit()"
         />
       </div>
-      <div class="forgot">
-        <a href="#" @click.prevent="login.goForgot()">Forgot password?</a>
-      </div>
 
       <button class="btn-gradient" type="button" @click="login.submit()">
         Log In
@@ -179,20 +176,7 @@ const login = useLoginStore()
   flex-direction: column;
   gap: 12px;
   margin-top: 20px;
-}
-
-.forgot {
-  text-align: right;
-  margin: -4px 0 16px;
-
-  a {
-    font-size: 0.8rem;
-    color: $muted;
-    text-decoration: none;
-    &:hover {
-      color: $blue;
-    }
-  }
+  margin-bottom: 16px;
 }
 
 .btn-gradient {

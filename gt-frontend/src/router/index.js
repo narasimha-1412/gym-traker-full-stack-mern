@@ -3,8 +3,6 @@ import { useAppStore } from '@/stores/app.store'
 import { useUsersStore } from '@/stores/users.store'
 
 import LoginPage from '@/pages/login/LoginPage.vue'
-import ForgotPage from '@/pages/forgot/ForgotPage.vue'
-import ResetPage from '@/pages/reset/ResetPage.vue'
 import DashboardPage from '@/pages/dashboard/DashboardPage.vue'
 import WorkoutPage from '@/pages/workout/WorkoutPage.vue'
 import SettingsPage from '@/pages/settings/SettingsPage.vue'
@@ -18,16 +16,6 @@ const router = createRouter({
       name: 'login',
       component: LoginPage,
       meta: { guest: true },
-    },
-    {
-      path: '/forgot',
-      name: 'forgot',
-      component: ForgotPage,
-    },
-    {
-      path: '/reset/:token',
-      name: 'reset',
-      component: ResetPage,
     },
     {
       path: '/',

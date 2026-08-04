@@ -34,14 +34,27 @@ const users = useUsersStore()
             rounded="lg"
             @keyup.enter="users.create()"
           />
-          <v-text-field
-            v-model="users.password"
-            label="Default password"
-            type="text"
-            prepend-inner-icon="mdi-lock-outline"
-            rounded="lg"
-            disabled
-          />
+          <div class="pw-field">
+            <v-text-field
+              v-model="users.password"
+              label="Default password"
+              type="text"
+              prepend-inner-icon="mdi-lock-outline"
+              rounded="lg"
+              disabled
+              hide-details
+            />
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              class="pw-copy"
+              aria-label="Copy default password"
+              @click="users.copyDefaultPassword()"
+            >
+              <v-icon icon="mdi-content-copy" size="18" />
+            </v-btn>
+          </div>
         </div>
         <button class="btn-gradient" type="button" @click="users.create()">Create</button>
       </div>
@@ -74,15 +87,24 @@ const users = useUsersStore()
                 </v-btn>
               </div>
             </div>
-            <button
-              v-if="u.role !== 'admin'"
-              class="btn-status"
-              type="button"
-              :class="u.status"
-              @click="users.toggleStatus(u.id)"
-            >
-              {{ u.status === 'active' ? 'Disable' : 'Enable' }}
-            </button>
+            <div class="actions">
+              <button
+                class="btn-status"
+                type="button"
+                @click="users.resetPassword()"
+              >
+                Reset password
+              </button>
+              <button
+                v-if="u.role !== 'admin'"
+                class="btn-status"
+                type="button"
+                :class="u.status"
+                @click="users.toggleStatus(u.id)"
+              >
+                {{ u.status === 'active' ? 'Disable' : 'Enable' }}
+              </button>
+            </div>
           </li>
         </ul>
       </div>
@@ -143,6 +165,18 @@ const users = useUsersStore()
   flex-direction: column;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.pw-field {
+  position: relative;
+
+  .pw-copy {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
 }
 
 .btn-gradient {
@@ -224,8 +258,15 @@ const users = useUsersStore()
   white-space: nowrap;
 }
 
-.btn-status {
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+.btn-status {
   height: 28px;
   padding: 0 10px;
   border: 1px solid $stroke;
