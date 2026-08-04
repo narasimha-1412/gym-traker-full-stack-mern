@@ -12,12 +12,13 @@ import {
   createUserBody,
   userIdParams,
 } from '../validators/users.validators.js'
+import { listUsersLimiter } from '../middleware/rateLimit.js'
 
 const router = Router()
 
 router.use(requireAuth, requireAdmin)
 
-router.post('/list', validate(listUsersBody), listUsers)
+router.post('/list', listUsersLimiter, validate(listUsersBody), listUsers)
 router.post('/', validate(createUserBody), createUser)
 router.patch('/:id/status', validate(userIdParams, 'params'), toggleStatus)
 router.post('/:id/reset-password', validate(userIdParams, 'params'), resetPassword)

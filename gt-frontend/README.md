@@ -44,6 +44,8 @@ Vite is configured with `server.host: true` so the container is reachable at `ht
 | -------------- | -------- | ----------------------- | ------------------ |
 | `VITE_API_URL` | No       | `http://localhost:5000` | Backend API origin |
 
+In production, the page origin must be listed in the API’s `CORS_ORIGINS`, and `VITE_API_URL` must point at that API (HTTPS). Auth uses cookies (`withCredentials`), so CORS cannot be `*`.
+
 ## Conventions
 
 ### Pages
@@ -72,6 +74,9 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 - Pages stay presentational; do not call Axios from Vue components
 - `src/networks/base/envelope.js` — unwrap `{ success, data }` responses; `apiMessage()` for errors
 - Backend returns `{ success, data }` on success and `{ success: false, message, errors? }` on error; stores unwrap via `getData(res)`
+- `apiMessage(err)` surfaces Zod field errors, rate-limit (`429`), and oversized body (`413`) for snackbars
+- Search text is capped at 100 chars client-side to match API validation
+- Create user sends only `{ name, email, password }` — never `role` (server forces `user`)
 
 ### Stores
 

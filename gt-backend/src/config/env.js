@@ -10,6 +10,17 @@ for (const key of required) {
   }
 }
 
+const isProd = process.env.NODE_ENV === 'production'
+
+const corsOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+
+if (isProd && corsOrigins.length === 0) {
+  throw new Error('Missing required env var in production: CORS_ORIGINS')
+}
+
 export const env = {
   port: Number(process.env.PORT) || 5000,
   mongodbUri: process.env.MONGODB_URI,
@@ -17,5 +28,6 @@ export const env = {
   refreshSecret: process.env.JWT_REFRESH_SECRET,
   accessExpires: process.env.JWT_ACCESS_EXPIRES || '2m',
   refreshExpires: process.env.JWT_REFRESH_EXPIRES || '7d',
-  isProd: process.env.NODE_ENV === 'production',
+  isProd,
+  corsOrigins,
 }

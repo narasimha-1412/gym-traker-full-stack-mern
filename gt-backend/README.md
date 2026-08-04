@@ -54,6 +54,8 @@ See parent `compose.yaml`. This service is built from `Dockerfile` in this folde
 | `JWT_ACCESS_EXPIRES` | No       | `2m`    | Access token lifetime           |
 | `JWT_REFRESH_EXPIRES`| No       | `7d`    | Refresh token lifetime          |
 | `PORT`               | No       | `5000`  | HTTP server port                |
+| `NODE_ENV`           | No       | —       | Set to `production` in prod     |
+| `CORS_ORIGINS`       | Prod yes | —       | Comma-separated allowed frontend origins |
 
 Example:
 
@@ -64,6 +66,9 @@ JWT_ACCESS_SECRET=change-me-access-secret
 JWT_REFRESH_SECRET=change-me-refresh-secret
 JWT_ACCESS_EXPIRES=2m
 JWT_REFRESH_EXPIRES=7d
+# production example:
+# NODE_ENV=production
+# CORS_ORIGINS=https://app.example.com
 ```
 
 Never commit `.env`.
@@ -73,7 +78,7 @@ Never commit `.env`.
 ### Entry points
 
 - `src/server.js` — connect DB, then listen
-- `src/app.js` — Express app (CORS + credentials, cookies, JSON, logger, routes, errors)
+- `src/app.js` — Express app (Helmet, CORS + credentials, cookies, JSON limit, logger, routes, errors)
 
 ### Config
 
@@ -103,6 +108,22 @@ Never commit `.env`.
 - `.strict()` rejects unknown fields (stops clients injecting extra keys like `role`)
 - On failure → `{ success: false, message: "Validation failed", errors: [{ field, message }] }`
 - Controllers assume `req.body` / `req.params` are already cleaned
+
+### Rate limiting
+
+- `src/middleware/rateLimit.js` — per-IP limits via `express-rate-limit`
+- `POST /api/auth/login` — 20 requests / 15 minutes
+- `POST /api/users/list` — 60 requests / 1 minute
+- Over limit → `429` with `{ success: false, message: "Too many requests, try again later" }`
+
+### HTTP hardening
+
+- **Helmet** — sets common security headers (e.g. `X-Content-Type-Options`, frame guards)
+### CORS & cookies
+
+- **Dev**: `localhost` / `127.0.0.1` (any port) allowed; optional `CORS_ORIGINS`
+- **Prod** (`NODE_ENV=production`): `CORS_ORIGINS` required — only those origins + no-Origin tools
+- Refresh cookie: `httpOnly`; `secure` + `sameSite: 'strict'` in production; `path: /api/auth`
 
 ### API response envelope
 
@@ -168,6 +189,7 @@ gt-backend/
         ├── requestLogger.js
         ├── errorHandler.js
         ├── validate.js
+        ├── rateLimit.js
         └── auth.js
 ```
 
@@ -187,10 +209,13 @@ gt-backend/
 ## Feature notes
 
 - **DB**: MongoDB Atlas via Mongoose; success logged as `MongoDB connected`
-- **CORS**: Allows no Origin or `localhost` / `127.0.0.1` (any port); `credentials: true` for refresh cookies
-- **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack
+- **CORS**: Dev allows localhost; prod requires `CORS_ORIGINS` allowlist; `credentials: true`
+- **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'strict'`
+- **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack (5xx)
 - **Auth**: Access JWT (default 2m, send as `Authorization: Bearer`); refresh JWT in `httpOnly` cookie `refreshToken` (path `/api/auth`)
 - **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
 - **Validation**: Zod on login / list / create / `:id` params; unknown body keys rejected
+- **Rate limits**: login 20/15min; users list 60/min (per IP)
+- **HTTP hardening**: Helmet security headers; JSON body max `32kb` (413 if larger); prod 500s return generic message only
 - **Seed**: `npm run seed:admin` → `alex@rivera.com` / `IronLog123` (admin)
 - **Workouts**: not implemented yet

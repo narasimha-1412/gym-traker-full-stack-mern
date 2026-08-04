@@ -94,10 +94,16 @@ onMounted(() => {
           <v-progress-circular indeterminate size="28" width="2" color="primary" />
         </div>
         <ul v-else class="list">
-          <li v-for="u in users.list" :key="u.id" class="row" :class="{ disabled: u.status === 'disabled' }">
+          <li v-for="u in users.list" :key="u.id" class="row">
             <div class="info">
               <p class="name">
                 {{ u.name }}
+                <span
+                  v-if="u.status === 'disabled'"
+                  class="status-dot"
+                  aria-label="Disabled"
+                  title="Disabled"
+                />
                 <v-icon
                   v-if="u.role === 'admin'"
                   icon="mdi-star"
@@ -270,10 +276,6 @@ onMounted(() => {
   padding: 12px;
   background: $surface-2;
   border-radius: $radius-btn;
-
-  &.disabled {
-    opacity: 0.65;
-  }
 }
 
 .info {
@@ -290,6 +292,15 @@ onMounted(() => {
   font-size: 0.9rem;
   font-weight: 600;
   color: $text;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $red;
+  flex-shrink: 0;
 }
 
 .admin-star {
