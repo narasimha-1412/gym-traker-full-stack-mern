@@ -28,8 +28,11 @@ From the parent folder (`gym-traker-full-stack-mern`):
 # ensure gt-backend/.env has MONGODB_URI
 docker compose up --build
 docker compose watch
+docker compose logs -f api
 docker compose down
 ```
+
+`docker compose logs -f api` streams request and error logs from the API container. Without Docker, logs appear in the terminal running `npm run dev`.
 
 See parent `compose.yaml`. This service is built from `Dockerfile` in this folder. Compose loads env from `gt-backend/.env`.
 
@@ -60,7 +63,7 @@ Never commit `.env`.
 ### Entry points
 
 - `src/server.js` — connect DB, then listen
-- `src/app.js` — Express app (middleware and routes mount here later)
+- `src/app.js` — Express app (CORS, JSON body, request logger, error handler)
 
 ### Config
 
@@ -110,10 +113,14 @@ gt-backend/
     ├── controllers/
     ├── routes/
     └── middleware/
+        ├── requestLogger.js
+        └── errorHandler.js
 ```
 
 ## Feature notes
 
 - **DB**: MongoDB Atlas via Mongoose; success logged as `MongoDB connected`
-- **API**: Express app scaffold only — no routes yet
+- **API**: Express scaffold — CORS + JSON body parser + request/error logging; no routes yet
+- **CORS**: Allows requests with no Origin, or from `localhost` / `127.0.0.1` on any port
+- **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack
 - **Auth / workouts**: not implemented yet (will land under `models`, `routes`, `controllers`)
