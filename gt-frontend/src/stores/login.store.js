@@ -3,10 +3,7 @@ import { useAppStore } from './app.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
 import { login } from '@/networks/auth.services'
-
-function apiMessage(err, fallback) {
-  return err.response?.data?.message || fallback
-}
+import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useLoginStore = defineStore('login', {
   state: () => ({
@@ -30,7 +27,7 @@ export const useLoginStore = defineStore('login', {
 
       await useLoaderStore().wrap(async () => {
         try {
-          const { data } = await login(email, this.password)
+          const data = getData(await login(email, this.password))
           const app = useAppStore()
           app.loginSession(data.user, data.accessToken)
           app.goDashboard()

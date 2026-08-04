@@ -31,15 +31,28 @@ onMounted(() => {
             rounded="lg"
             @keyup.enter="users.create()"
           />
-          <v-text-field
-            v-model="users.email"
-            label="Email"
-            type="email"
-            prepend-inner-icon="mdi-email-outline"
-            rounded="lg"
-            @keyup.enter="users.create()"
-          />
-          <div class="pw-field">
+          <div class="copy-field">
+            <v-text-field
+              :model-value="users.generatedEmail"
+              label="Email"
+              type="email"
+              prepend-inner-icon="mdi-email-outline"
+              rounded="lg"
+              disabled
+              hide-details
+            />
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              class="copy-btn"
+              aria-label="Copy email"
+              @click="users.copyGeneratedEmail()"
+            >
+              <v-icon icon="mdi-content-copy" size="18" />
+            </v-btn>
+          </div>
+          <div class="copy-field">
             <v-text-field
               v-model="users.password"
               label="Default password"
@@ -53,7 +66,7 @@ onMounted(() => {
               icon
               variant="text"
               size="small"
-              class="pw-copy"
+              class="copy-btn"
               aria-label="Copy default password"
               @click="users.copyDefaultPassword()"
             >
@@ -172,10 +185,10 @@ onMounted(() => {
   margin-bottom: 14px;
 }
 
-.pw-field {
+.copy-field {
   position: relative;
 
-  .pw-copy {
+  .copy-btn {
     position: absolute;
     right: 8px;
     top: 50%;

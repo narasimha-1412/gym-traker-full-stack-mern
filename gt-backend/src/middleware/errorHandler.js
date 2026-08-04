@@ -1,3 +1,5 @@
+import { sendFail } from '../utils/apiResponse.js'
+
 export function errorHandler(err, req, res, next) {
   const status = err.status || err.statusCode || 500
   const message = err.message || 'Internal Server Error'
@@ -11,5 +13,5 @@ export function errorHandler(err, req, res, next) {
     return next(err)
   }
 
-  res.status(status).json({ message })
+  sendFail(res, message, status)
 }

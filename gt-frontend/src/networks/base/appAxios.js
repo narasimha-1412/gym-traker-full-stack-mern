@@ -37,13 +37,14 @@ appAxios.interceptors.response.use(
         refreshing = null
       })
       const { data } = await refreshing
-      setAccessToken(data.accessToken)
+      const payload = data?.success ? data.data : data
+      setAccessToken(payload.accessToken)
 
       const { useAppStore } = await import('@/stores/app.store')
-      useAppStore().setAccessToken(data.accessToken)
+      useAppStore().setAccessToken(payload.accessToken)
 
       original.headers = original.headers || {}
-      original.headers.Authorization = `Bearer ${data.accessToken}`
+      original.headers.Authorization = `Bearer ${payload.accessToken}`
       return appAxios(original)
     } catch (refreshErr) {
       setAccessToken(null)

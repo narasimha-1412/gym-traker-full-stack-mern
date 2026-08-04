@@ -88,12 +88,28 @@ Never commit `.env`.
 | `src/controllers/` | Request handlers                    |
 | `src/routes/`      | Express routers                     |
 | `src/middleware/`  | Shared middleware (auth, errors, …) |
-| `src/utils/`       | Tokens, cookies helpers             |
+| `src/utils/`       | Tokens, cookies, API response helpers |
 | `src/scripts/`     | One-off scripts (seed)              |
 
 - Keep route files thin; put logic in controllers
 - One model file per collection (e.g. `User.js`)
 - Mount API routes under `/api` from `routes/index.js`
+
+### API response envelope
+
+All JSON responses use a consistent envelope:
+
+**Success**
+```json
+{ "success": true, "data": { ... } }
+```
+
+**Error**
+```json
+{ "success": false, "message": "Human-readable error", "errors": [{ "field": "email", "message": "..." }] }
+```
+
+Helpers live in `src/utils/apiResponse.js` (`sendSuccess`, `sendFail`). HTTP status codes still reflect the outcome (200, 201, 400, 401, 403, 404, 409, 500). `errors` is optional on failure responses.
 
 ### Modules
 
@@ -132,7 +148,8 @@ gt-backend/
     │   └── users.routes.js
     ├── utils/
     │   ├── tokens.js
-    │   └── cookies.js
+    │   ├── cookies.js
+    │   └── apiResponse.js
     ├── scripts/
     │   └── seedAdmin.js
     └── middleware/
@@ -143,16 +160,16 @@ gt-backend/
 
 ## API routes
 
-| Method | Path | Access | Notes |
-| ------ | ---- | ------ | ----- |
-| `POST` | `/api/auth/login` | Public | `{ email, password }` → `{ accessToken, user }` + refresh cookie |
-| `POST` | `/api/auth/refresh` | Refresh cookie | → `{ accessToken }` (rotates cookie) |
-| `POST` | `/api/auth/logout` | Public | Clears refresh cookie |
-| `GET` | `/api/auth/me` | Bearer access | → `{ user }` |
-| `GET` | `/api/users` | Admin | List users |
-| `POST` | `/api/users` | Admin | Create user (default password `IronLog123`) |
-| `PATCH` | `/api/users/:id/status` | Admin | Toggle active/disabled |
-| `POST` | `/api/users/:id/reset-password` | Admin | Reset to default password |
+| Method | Path | Access | Success `data` |
+| ------ | ---- | ------ | -------------- |
+| `POST` | `/api/auth/login` | Public | `{ accessToken, user }` + refresh cookie |
+| `POST` | `/api/auth/refresh` | Refresh cookie | `{ accessToken }` (rotates cookie) |
+| `POST` | `/api/auth/logout` | Public | `null` (clears refresh cookie) |
+| `GET` | `/api/auth/me` | Bearer access | `{ user }` |
+| `GET` | `/api/users` | Admin | `{ users: [...] }` |
+| `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
+| `PATCH` | `/api/users/:id/status` | Admin | `{ user }` |
+| `POST` | `/api/users/:id/reset-password` | Admin | `{ message }` |
 
 ## Feature notes
 

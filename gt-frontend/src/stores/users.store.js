@@ -8,28 +8,47 @@ import {
   toggleStatus as toggleStatusRequest,
   resetPassword as resetPasswordRequest,
 } from '@/networks/users.services'
+import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const DEFAULT_PASSWORD = 'IronLog123'
+export const EMAIL_DOMAIN = 'ironlog.com'
 
-function apiMessage(err, fallback) {
-  return err.response?.data?.message || fallback
+export function nameToEmailLocal(name) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return ''
+
+  return parts
+    .map((part, i) => {
+      const lower = part.toLowerCase()
+      if (i === 0) return lower
+      return lower.charAt(0).toUpperCase() + lower.slice(1)
+    })
+    .join('')
+}
+
+export function emailFromName(name) {
+  const local = nameToEmailLocal(name)
+  return local ? `${local}@${EMAIL_DOMAIN}` : ''
 }
 
 export const useUsersStore = defineStore('users', {
   state: () => ({
     name: '',
-    email: '',
     password: DEFAULT_PASSWORD,
     list: [],
   }),
+
+  getters: {
+    generatedEmail: state => emailFromName(state.name),
+  },
 
   actions: {
     async fetchList() {
       const snack = useSnackbarStore()
       await useLoaderStore().wrap(async () => {
         try {
-          const { data } = await listUsers()
-          this.list = data
+          const data = getData(await listUsers())
+          this.list = data.users
         } catch (err) {
           snack.error(apiMessage(err, 'Could not load users'))
         }
@@ -39,14 +58,14 @@ export const useUsersStore = defineStore('users', {
     async create() {
       const snack = useSnackbarStore()
       const name = this.name.trim()
-      const email = this.email.trim()
+      const email = this.generatedEmail
 
-      if (!name || !email) {
-        snack.error('Fill in name and email')
+      if (!name) {
+        snack.error('Enter a name')
         return
       }
-      if (!email.includes('@')) {
-        snack.error('Enter a valid email')
+      if (!email) {
+        snack.error('Could not generate email from name')
         return
       }
 
@@ -58,10 +77,9 @@ export const useUsersStore = defineStore('users', {
             password: this.password || DEFAULT_PASSWORD,
           })
           this.name = ''
-          this.email = ''
           this.password = DEFAULT_PASSWORD
-          const { data } = await listUsers()
-          this.list = data
+          const data = getData(await listUsers())
+          this.list = data.users
           snack.success('User created')
         } catch (err) {
           snack.error(apiMessage(err, 'Could not create user'))
@@ -81,10 +99,10 @@ export const useUsersStore = defineStore('users', {
 
       await useLoaderStore().wrap(async () => {
         try {
-          const { data } = await toggleStatusRequest(id)
+          const data = getData(await toggleStatusRequest(id))
           const idx = this.list.findIndex(u => u.id === id)
-          if (idx !== -1) this.list[idx] = data
-          snack.success(data.status === 'active' ? 'User enabled' : 'User disabled')
+          if (idx !== -1) this.list[idx] = data.user
+          snack.success(data.user.status === 'active' ? 'User enabled' : 'User disabled')
         } catch (err) {
           snack.error(apiMessage(err, 'Could not update user'))
         }
@@ -105,6 +123,21 @@ export const useUsersStore = defineStore('users', {
 
     async copyEmail(email) {
       const snack = useSnackbarStore()
+      try {
+        await navigator.clipboard.writeText(email)
+        snack.success('Email copied')
+      } catch {
+        snack.error('Could not copy email')
+      }
+    },
+
+    async copyGeneratedEmail() {
+      const snack = useSnackbarStore()
+      const email = this.generatedEmail
+      if (!email) {
+        snack.error('Enter a name first')
+        return
+      }
       try {
         await navigator.clipboard.writeText(email)
         snack.success('Email copied')

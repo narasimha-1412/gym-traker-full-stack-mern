@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { setAccessToken } from '@/networks/base/accessToken'
 import { refresh, me, logout as logoutRequest } from '@/networks/auth.services'
+import { getData } from '@/networks/base/envelope'
 
 const emptyUser = () => ({
   name: '',
@@ -83,10 +84,10 @@ export const useAppStore = defineStore('app', {
     async bootstrap() {
       if (this.bootstrapped) return
       try {
-        const { data } = await refresh()
-        this.setAccessToken(data.accessToken)
-        const meRes = await me()
-        this.loginSession(meRes.data.user, data.accessToken)
+        const refreshData = getData(await refresh())
+        this.setAccessToken(refreshData.accessToken)
+        const meData = getData(await me())
+        this.loginSession(meData.user, refreshData.accessToken)
       } catch {
         this.clearSession()
       } finally {

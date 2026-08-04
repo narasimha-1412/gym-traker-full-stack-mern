@@ -70,7 +70,8 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 - `src/networks/auth.services.js` / `users.services.js` — named functions (route + method + payload)
 - Paths live only in `apiRoutes.js`; HTTP only in services; loading / snackbars stay in stores
 - Pages stay presentational; do not call Axios from Vue components
-- When adding an endpoint: route in `apiRoutes.js` → service export → store action
+- `src/networks/base/envelope.js` — unwrap `{ success, data }` responses; `apiMessage()` for errors
+- Backend returns `{ success, data }` on success and `{ success: false, message, errors? }` on error; stores unwrap via `getData(res)`
 
 ### Stores
 
@@ -144,7 +145,8 @@ gt-frontend/
     │   │   ├── appAxios.js
     │   │   ├── accessToken.js
     │   │   ├── api.js
-    │   │   └── apiRoutes.js
+    │   │   ├── apiRoutes.js
+    │   │   └── envelope.js
     │   ├── auth.services.js
     │   └── users.services.js
     ├── assets/
@@ -212,7 +214,7 @@ Unknown paths redirect to `/`.
 ## Feature notes
 
 - **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session
-- **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password against `/api/users`; default password `IronLog123`
+- **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password against `/api/users`; email auto-generated from name as camelCase `@ironlog.com` (e.g. `Tony Stark` → `tonyStark@ironlog.com`); default password `IronLog123`
 - **Dashboard** (`/`): routines list, progress ring, add / rename / delete routine, reset progress (still local mock)
 - **Workout**: exercises CRUD, mark done, weight unit from settings (still local mock)
 - **Settings**: profile (username, kg/lb) local; change password mock until API; log out hits API
