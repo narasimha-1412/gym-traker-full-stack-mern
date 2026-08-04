@@ -1,0 +1,57 @@
+import axios from 'axios'
+import { getAccessToken, setAccessToken } from './accessToken'
+import { routes } from './apiRoutes'
+
+export const appAxios = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  withCredentials: true,
+})
+
+appAxios.interceptors.request.use(config => {
+  const token = getAccessToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+let refreshing = null
+
+appAxios.interceptors.response.use(
+  res => res,
+  async err => {
+    const original = err.config
+    if (!original || err.response?.status !== 401 || original._retry) {
+      return Promise.reject(err)
+    }
+
+    const url = original.url || ''
+    if (url.includes(routes.auth.login) || url.includes(routes.auth.refresh)) {
+      return Promise.reject(err)
+    }
+
+    original._retry = true
+
+    try {
+      refreshing ??= appAxios.post(routes.auth.refresh).finally(() => {
+        refreshing = null
+      })
+      const { data } = await refreshing
+      setAccessToken(data.accessToken)
+
+      const { useAppStore } = await import('@/stores/app.store')
+      useAppStore().setAccessToken(data.accessToken)
+
+      original.headers = original.headers || {}
+      original.headers.Authorization = `Bearer ${data.accessToken}`
+      return appAxios(original)
+    } catch (refreshErr) {
+      setAccessToken(null)
+      const { useAppStore } = await import('@/stores/app.store')
+      useAppStore().clearSession()
+      return Promise.reject(refreshErr)
+    }
+  }
+)
+
+export default appAxios

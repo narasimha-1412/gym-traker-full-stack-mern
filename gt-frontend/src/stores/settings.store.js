@@ -100,11 +100,11 @@ export const useSettingsStore = defineStore('settings', {
       })
       if (!ok) return
 
-      await useLoaderStore().wrap(() => {
+      await useLoaderStore().wrap(async () => {
         this.resetForm()
         this.tab = 'profile'
         useLoginStore().reset()
-        useAppStore().resetSession()
+        await useAppStore().logout()
         useSnackbarStore().info('Logged out')
       })
     },

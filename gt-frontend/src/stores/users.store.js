@@ -2,24 +2,38 @@ import { defineStore } from 'pinia'
 import { useAppStore } from './app.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
+import {
+  listUsers,
+  createUser,
+  toggleStatus as toggleStatusRequest,
+  resetPassword as resetPasswordRequest,
+} from '@/networks/users.services'
 
 export const DEFAULT_PASSWORD = 'IronLog123'
+
+function apiMessage(err, fallback) {
+  return err.response?.data?.message || fallback
+}
 
 export const useUsersStore = defineStore('users', {
   state: () => ({
     name: '',
     email: '',
     password: DEFAULT_PASSWORD,
-    list: [
-      { id: 1, name: 'Alex Rivera', email: 'alex@rivera.com', role: 'admin', status: 'active' },
-      { id: 2, name: 'Sam Lee', email: 'sam@lee.com', role: 'user', status: 'active' },
-    ],
+    list: [],
   }),
 
   actions: {
-    findByEmail(email) {
-      const key = email.trim().toLowerCase()
-      return this.list.find(u => u.email.toLowerCase() === key)
+    async fetchList() {
+      const snack = useSnackbarStore()
+      await useLoaderStore().wrap(async () => {
+        try {
+          const { data } = await listUsers()
+          this.list = data
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not load users'))
+        }
+      })
     },
 
     async create() {
@@ -35,23 +49,23 @@ export const useUsersStore = defineStore('users', {
         snack.error('Enter a valid email')
         return
       }
-      if (this.list.some(u => u.email === email)) {
-        snack.error('Email already exists')
-        return
-      }
 
-      await useLoaderStore().wrap(() => {
-        this.list.push({
-          id: Date.now(),
-          name,
-          email,
-          role: 'user',
-          status: 'active',
-        })
-        this.name = ''
-        this.email = ''
-        this.password = DEFAULT_PASSWORD
-        snack.success('User created')
+      await useLoaderStore().wrap(async () => {
+        try {
+          await createUser({
+            name,
+            email,
+            password: this.password || DEFAULT_PASSWORD,
+          })
+          this.name = ''
+          this.email = ''
+          this.password = DEFAULT_PASSWORD
+          const { data } = await listUsers()
+          this.list = data
+          snack.success('User created')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not create user'))
+        }
       })
     },
 
@@ -65,15 +79,28 @@ export const useUsersStore = defineStore('users', {
         return
       }
 
-      await useLoaderStore().wrap(() => {
-        user.status = user.status === 'active' ? 'disabled' : 'active'
-        snack.success(user.status === 'active' ? 'User enabled' : 'User disabled')
+      await useLoaderStore().wrap(async () => {
+        try {
+          const { data } = await toggleStatusRequest(id)
+          const idx = this.list.findIndex(u => u.id === id)
+          if (idx !== -1) this.list[idx] = data
+          snack.success(data.status === 'active' ? 'User enabled' : 'User disabled')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not update user'))
+        }
       })
     },
 
-    resetPassword() {
+    async resetPassword(id) {
       const snack = useSnackbarStore()
-      snack.success('Password reset successfully')
+      await useLoaderStore().wrap(async () => {
+        try {
+          await resetPasswordRequest(id)
+          snack.success('Password reset successfully')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not reset password'))
+        }
+      })
     },
 
     async copyEmail(email) {

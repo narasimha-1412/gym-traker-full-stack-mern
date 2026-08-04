@@ -1,9 +1,14 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useAppStore } from '@/stores/app.store'
 import { useUsersStore } from '@/stores/users.store'
 
 const app = useAppStore()
 const users = useUsersStore()
+
+onMounted(() => {
+  users.fetchList()
+})
 </script>
 
 <template>
@@ -91,7 +96,7 @@ const users = useUsersStore()
               <button
                 class="btn-status"
                 type="button"
-                @click="users.resetPassword()"
+                @click="users.resetPassword(u.id)"
               >
                 Reset password
               </button>

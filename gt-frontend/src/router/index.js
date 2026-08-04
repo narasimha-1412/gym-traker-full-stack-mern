@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAppStore } from '@/stores/app.store'
-import { useUsersStore } from '@/stores/users.store'
 
 import LoginPage from '@/pages/login/LoginPage.vue'
 import DashboardPage from '@/pages/dashboard/DashboardPage.vue'
@@ -51,13 +50,9 @@ const router = createRouter({
 router.beforeEach(to => {
   const app = useAppStore()
 
-  if (app.loggedIn) {
-    const me = useUsersStore().findByEmail(app.user.email)
-    if (me?.status === 'disabled') {
-      app.loggedIn = false
-      app.user.role = 'user'
-      if (to.name !== 'login') return { name: 'login' }
-    }
+  if (app.loggedIn && app.user.status === 'disabled') {
+    app.clearSession()
+    if (to.name !== 'login') return { name: 'login' }
   }
 
   if (to.meta.auth && !app.loggedIn) {

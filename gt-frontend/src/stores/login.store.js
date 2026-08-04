@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { useAppStore } from './app.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
-import { useUsersStore, DEFAULT_PASSWORD } from './users.store'
+import { login } from '@/networks/auth.services'
+
+function apiMessage(err, fallback) {
+  return err.response?.data?.message || fallback
+}
 
 export const useLoginStore = defineStore('login', {
   state: () => ({
@@ -24,29 +28,16 @@ export const useLoginStore = defineStore('login', {
         return
       }
 
-      const matched = useUsersStore().findByEmail(email)
-      if (!matched) {
-        snack.error('Invalid login details')
-        return
-      }
-      if (matched.status === 'disabled') {
-        snack.error('Account disabled')
-        return
-      }
-      if (this.password !== DEFAULT_PASSWORD) {
-        snack.error('Invalid login details')
-        return
-      }
-
-      await useLoaderStore().wrap(() => {
-        const app = useAppStore()
-        app.loginSession({
-          name: matched.name,
-          email: matched.email,
-          role: matched.role,
-        })
-        app.goDashboard()
-        snack.success('Welcome back')
+      await useLoaderStore().wrap(async () => {
+        try {
+          const { data } = await login(email, this.password)
+          const app = useAppStore()
+          app.loginSession(data.user, data.accessToken)
+          app.goDashboard()
+          snack.success('Welcome back')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Invalid login details'))
+        }
       })
     },
 

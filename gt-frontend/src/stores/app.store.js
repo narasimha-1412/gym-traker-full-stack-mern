@@ -1,14 +1,21 @@
 import { defineStore } from 'pinia'
+import { setAccessToken } from '@/networks/base/accessToken'
+import { refresh, me, logout as logoutRequest } from '@/networks/auth.services'
+
+const emptyUser = () => ({
+  name: '',
+  email: '',
+  avatar: '',
+  role: 'user',
+  status: 'active',
+})
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    loggedIn: true,
-    user: {
-      name: 'Alex Rivera',
-      email: 'alex@rivera.com',
-      avatar: 'A',
-      role: 'admin',
-    },
+    loggedIn: false,
+    accessToken: null,
+    bootstrapped: false,
+    user: emptyUser(),
     weightUnit: 'kg', // kg | lb
   }),
 
@@ -50,20 +57,56 @@ export const useAppStore = defineStore('app', {
       this.setWeightUnit(weightUnit)
     },
 
-    loginSession({ name, email, role } = {}) {
+    setAccessToken(token) {
+      this.accessToken = token || null
+      setAccessToken(this.accessToken)
+    },
+
+    loginSession(user, accessToken) {
+      this.setAccessToken(accessToken)
       this.loggedIn = true
-      if (email) this.user.email = email
-      if (name) {
-        this.user.name = name
-        this.user.avatar = name.charAt(0).toUpperCase()
+      this.user = {
+        name: user.name || '',
+        email: user.email || '',
+        avatar: (user.name || '').charAt(0).toUpperCase(),
+        role: user.role || 'user',
+        status: user.status || 'active',
       }
-      if (role) this.user.role = role
+    },
+
+    clearSession() {
+      this.setAccessToken(null)
+      this.loggedIn = false
+      this.user = emptyUser()
+    },
+
+    async bootstrap() {
+      if (this.bootstrapped) return
+      try {
+        const { data } = await refresh()
+        this.setAccessToken(data.accessToken)
+        const meRes = await me()
+        this.loginSession(meRes.data.user, data.accessToken)
+      } catch {
+        this.clearSession()
+      } finally {
+        this.bootstrapped = true
+      }
+    },
+
+    async logout() {
+      try {
+        await logoutRequest()
+      } catch {
+        // still clear local session
+      } finally {
+        this.clearSession()
+        this.goLogin()
+      }
     },
 
     resetSession() {
-      this.loggedIn = false
-      this.user.email = ''
-      this.user.role = 'user'
+      this.clearSession()
       this.goLogin()
     },
   },
