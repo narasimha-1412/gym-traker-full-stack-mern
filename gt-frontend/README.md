@@ -58,7 +58,7 @@ In production, the page origin must be listed in the API’s `CORS_ORIGINS`, and
 ### Components
 
 - Shared / reusable UI lives flat under `src/components/` (e.g. `AppSnackbar.vue`, `AppLoader.vue`, `AppConfirm.vue`)
-- Page-specific components live next to their page under `src/pages/<pageName>/` (e.g. `pages/dashboard/RoutineCard.vue`)
+- Page-specific components live next to their page under `src/pages/<pageName>/` (e.g. `pages/dashboard/WorkoutCard.vue`)
 - Do not create per-page folders under `components/`
 
 ### Networks (API layer)
@@ -116,7 +116,7 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 - Use `useConfirmStore().ask({ title, message, confirmLabel })` before destructive actions
 - Returns a boolean; cancel / dismiss → `false`
 - UI: `components/AppConfirm.vue` — mounted once in `App.vue`
-- Used for: delete routine, delete exercise, reset progress, log out
+- Used for: delete workout, delete exercise, reset progress, log out
 
 ### Vue SFC order
 
@@ -179,7 +179,7 @@ gt-frontend/
     │   ├── dashboard/
     │   │   ├── DashboardPage.vue
     │   │   ├── ProgressRing.vue
-    │   │   ├── RoutineCard.vue
+    │   │   ├── WorkoutCard.vue
     │   │   └── SplitCard.vue
     │   ├── workout/
     │   │   └── WorkoutPage.vue
@@ -199,7 +199,7 @@ gt-frontend/
 | --------------------- | ----------- | --------------- | ---------- |
 | `/login`              | `login`     | `LoginPage`     | Guest      |
 | `/`                   | `dashboard` | `DashboardPage` | Auth       |
-| `/workout/:routineId` | `workout`   | `WorkoutPage`   | Auth       |
+| `/workout/:workoutId` | `workout`   | `WorkoutPage`   | Auth       |
 | `/settings`           | `settings`  | `SettingsPage`  | Auth       |
 | `/users`              | `users`     | `UsersPage`     | Auth+Admin |
 
@@ -223,6 +223,6 @@ Unknown paths redirect to `/`.
 
 - **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
 - **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password against `/api/users`; email auto-generated from name as camelCase `@ironlog.com` (e.g. `Tony Stark` → `tonyStark@ironlog.com`); default password `IronLog123`; list/search via one call `POST /api/users/list` body `{ search }` (empty string = all; debounced 300ms, spinner in list while loading); per-user ⋮ menu for reset password / enable-disable
-- **Dashboard** (`/`): tabs for **Routines** (default) and **Splits**; progress ring shows active split name + routine completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Routines); FAB / rename / delete for name-only create-edit on the current tab; routines and exercises stay scoped to the active split (still local mock)
-- **Workout**: exercises CRUD under a routine, mark done, weight unit from settings (still local mock)
+- **Dashboard** (`/`): tabs for **Workouts** (default) and **Splits**; progress ring shows active split name + workout completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Workouts); FAB / rename / delete for name-only create-edit on the current tab; workouts and exercises stay scoped to the active split (still local mock). Domain terms: **Split → Workout → Exercise**
+- **Workout** (`/workout/:workoutId`): exercises CRUD under a workout, mark done, weight unit from settings (still local mock)
 - **Settings**: profile via `PATCH /api/auth/me`; change password via `POST /api/auth/password` (current + new, min 8); log out hits API

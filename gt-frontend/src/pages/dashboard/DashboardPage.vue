@@ -5,7 +5,7 @@ import { useDashboardStore } from '@/stores/dashboard.store'
 import { useSettingsStore } from '@/stores/settings.store'
 import { useSnackbarStore } from '@/stores/snackbar.store'
 import ProgressRing from './ProgressRing.vue'
-import RoutineCard from './RoutineCard.vue'
+import WorkoutCard from './WorkoutCard.vue'
 import SplitCard from './SplitCard.vue'
 
 const app = useAppStore()
@@ -13,16 +13,16 @@ const dash = useDashboardStore()
 const settings = useSettingsStore()
 const snack = useSnackbarStore()
 
-const tab = ref('routines')
+const tab = ref('workouts')
 const addOpen = ref(false)
 const newTitle = ref('')
 const editOpen = ref(false)
 const editId = ref(null)
 const editTitle = ref('')
-const editKind = ref('routine')
+const editKind = ref('workout')
 
 function openAdd() {
-  if (tab.value === 'routines' && !dash.getActiveSplit()) {
+  if (tab.value === 'workouts' && !dash.getActiveSplit()) {
     snack.warning('Create a split first')
     tab.value = 'splits'
     return
@@ -42,7 +42,7 @@ async function submitAdd() {
     return
   }
 
-  const result = await dash.addRoutine(newTitle.value)
+  const result = await dash.addWorkout(newTitle.value)
   if (result === 'need-split') {
     closeAdd()
     tab.value = 'splits'
@@ -51,12 +51,12 @@ async function submitAdd() {
   if (result) closeAdd()
 }
 
-function openEditRoutine(id) {
-  const r = dash.getById(id)
-  if (!r) return
-  editKind.value = 'routine'
+function openEditWorkout(id) {
+  const w = dash.getById(id)
+  if (!w) return
+  editKind.value = 'workout'
   editId.value = id
-  editTitle.value = r.title
+  editTitle.value = w.title
   editOpen.value = true
 }
 
@@ -73,19 +73,19 @@ function closeEdit() {
   editOpen.value = false
   editId.value = null
   editTitle.value = ''
-  editKind.value = 'routine'
+  editKind.value = 'workout'
 }
 
 async function saveEdit() {
   const ok =
     editKind.value === 'split'
       ? await dash.renameSplit(editId.value, editTitle.value)
-      : await dash.renameRoutine(editId.value, editTitle.value)
+      : await dash.renameWorkout(editId.value, editTitle.value)
   if (ok) closeEdit()
 }
 
 async function selectSplit(id) {
-  if (await dash.setActiveSplit(id)) tab.value = 'routines'
+  if (await dash.setActiveSplit(id)) tab.value = 'workouts'
 }
 </script>
 
@@ -138,7 +138,7 @@ async function selectSplit(id) {
               <span class="split-name">{{ dash.getActiveSplit().title }}</span>
               ·
               <span class="mono">{{ dash.getProgress().done }}</span> of
-              <span class="mono">{{ dash.getProgress().total }}</span> routines completed
+              <span class="mono">{{ dash.getProgress().total }}</span> workouts completed
             </template>
             <template v-else>Create a split to track progress</template>
           </p>
@@ -156,29 +156,29 @@ async function selectSplit(id) {
       </div>
 
       <v-tabs v-model="tab" class="dash-tabs" color="primary" density="comfortable">
-        <v-tab value="routines">Routines</v-tab>
+        <v-tab value="workouts">Workouts</v-tab>
         <v-tab value="splits">Splits</v-tab>
       </v-tabs>
 
       <v-tabs-window v-model="tab" class="tabs-window">
-        <v-tabs-window-item value="routines">
+        <v-tabs-window-item value="workouts">
           <div v-if="!dash.getActiveSplit()" class="empty">
             <p class="empty-title">No active split</p>
-            <p class="empty-text">Create a split first, then add routines.</p>
+            <p class="empty-text">Create a split first, then add workouts.</p>
             <button class="btn-gradient" type="button" @click="tab = 'splits'">Go to Splits</button>
           </div>
-          <div v-else-if="!dash.getActiveRoutines().length" class="empty">
-            <p class="empty-title">No routines yet</p>
-            <p class="empty-text">Add a routine to "{{ dash.getActiveSplit().title }}".</p>
+          <div v-else-if="!dash.getActiveWorkouts().length" class="empty">
+            <p class="empty-title">No workouts yet</p>
+            <p class="empty-text">Add a workout to "{{ dash.getActiveSplit().title }}".</p>
           </div>
           <v-row v-else density="comfortable">
-            <v-col v-for="r in dash.getActiveRoutines()" :key="r.id" cols="12" sm="6" md="4">
-              <RoutineCard
-                :routine="r"
-                @toggle="dash.toggleRoutine"
+            <v-col v-for="w in dash.getActiveWorkouts()" :key="w.id" cols="12" sm="6" md="4">
+              <WorkoutCard
+                :workout="w"
+                @toggle="dash.toggleWorkout"
                 @open="dash.openWorkout"
-                @edit="openEditRoutine"
-                @delete="dash.deleteRoutine"
+                @edit="openEditWorkout"
+                @delete="dash.deleteWorkout"
               />
             </v-col>
           </v-row>
@@ -187,7 +187,7 @@ async function selectSplit(id) {
         <v-tabs-window-item value="splits">
           <div v-if="!dash.splits.length" class="empty">
             <p class="empty-title">No splits yet</p>
-            <p class="empty-text">Create your first split to organize routines.</p>
+            <p class="empty-text">Create your first split to organize workouts.</p>
           </div>
           <v-row v-else density="comfortable">
             <v-col v-for="s in dash.splits" :key="s.id" cols="12" sm="6" md="4">
@@ -207,7 +207,7 @@ async function selectSplit(id) {
     <button
       class="fab"
       type="button"
-      :aria-label="tab === 'splits' ? 'Add split' : 'Add routine'"
+      :aria-label="tab === 'splits' ? 'Add split' : 'Add workout'"
       @click="openAdd()"
     >
       <v-icon icon="mdi-plus" size="28" />
@@ -221,12 +221,12 @@ async function selectSplit(id) {
     >
       <v-card class="dlg-card">
         <v-card-title class="dlg-title">
-          {{ tab === 'splits' ? 'Add split' : 'Add routine' }}
+          {{ tab === 'splits' ? 'Add split' : 'Add workout' }}
         </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="newTitle"
-            :label="tab === 'splits' ? 'Split name' : 'Routine title'"
+            :label="tab === 'splits' ? 'Split name' : 'Workout title'"
             prepend-inner-icon="mdi-dumbbell"
             rounded="lg"
             autofocus
@@ -248,12 +248,12 @@ async function selectSplit(id) {
     >
       <v-card class="dlg-card">
         <v-card-title class="dlg-title">
-          {{ editKind === 'split' ? 'Rename split' : 'Rename routine' }}
+          {{ editKind === 'split' ? 'Rename split' : 'Rename workout' }}
         </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="editTitle"
-            :label="editKind === 'split' ? 'Split name' : 'Routine title'"
+            :label="editKind === 'split' ? 'Split name' : 'Workout title'"
             prepend-inner-icon="mdi-pencil-outline"
             rounded="lg"
             autofocus

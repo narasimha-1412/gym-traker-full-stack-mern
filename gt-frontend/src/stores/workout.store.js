@@ -23,8 +23,8 @@ export const useWorkoutStore = defineStore('workout', {
 
     persist() {
       if (!this.draft) return
-      const ctx = useDashboardStore().findRoutineContext(this.draft.id)
-      if (ctx) ctx.split.routines[ctx.index] = this.clone(this.draft)
+      const ctx = useDashboardStore().findWorkoutContext(this.draft.id)
+      if (ctx) ctx.split.workouts[ctx.index] = this.clone(this.draft)
     },
 
     loadDraft(id) {
@@ -84,8 +84,8 @@ export const useWorkoutStore = defineStore('workout', {
       const ok = await useConfirmStore().ask({
         title: 'Delete exercise?',
         message: name
-          ? `"${name}" will be removed from this routine.`
-          : 'This exercise will be removed from this routine.',
+          ? `"${name}" will be removed from this workout.`
+          : 'This exercise will be removed from this workout.',
         confirmLabel: 'Delete',
       })
       if (!ok) return false

@@ -15,18 +15,18 @@ const dialogOpen = ref(false)
 const dialogMode = ref('add')
 const form = ref({ name: '', weight: '', description: '' })
 
-function loadFromRoute(routineId = route.params.routineId) {
-  const id = Number(routineId)
+function loadFromRoute(workoutId = route.params.workoutId) {
+  const id = Number(workoutId)
   expandedId.value = null
   if (!Number.isFinite(id) || !workout.loadDraft(id)) {
-    useSnackbarStore().error('Routine not found')
+    useSnackbarStore().error('Workout not found')
     router.replace({ name: 'dashboard' })
   }
 }
 
 onMounted(() => loadFromRoute())
 onBeforeRouteUpdate(to => {
-  loadFromRoute(to.params.routineId)
+  loadFromRoute(to.params.workoutId)
 })
 
 function toggleExpand(exId) {

@@ -12,7 +12,7 @@ export const useDashboardStore = defineStore('dashboard', {
       {
         id: 1,
         title: 'PPL Bulk',
-        routines: [
+        workouts: [
           {
             id: 1,
             title: 'Push Day',
@@ -102,7 +102,7 @@ export const useDashboardStore = defineStore('dashboard', {
       {
         id: 2,
         title: 'Home Gym',
-        routines: [
+        workouts: [
           {
             id: 5,
             title: 'Full Body A',
@@ -135,14 +135,14 @@ export const useDashboardStore = defineStore('dashboard', {
       return this.splits.find(s => s.id === this.activeSplitId) || null
     },
 
-    getActiveRoutines() {
-      return this.getActiveSplit()?.routines || []
+    getActiveWorkouts() {
+      return this.getActiveSplit()?.workouts || []
     },
 
     getProgress() {
-      const routines = this.getActiveRoutines()
-      const done = routines.filter(r => r.done).length
-      const total = routines.length
+      const workouts = this.getActiveWorkouts()
+      const done = workouts.filter(w => w.done).length
+      const total = workouts.length
       return {
         done,
         total,
@@ -158,17 +158,17 @@ export const useDashboardStore = defineStore('dashboard', {
     getById(id) {
       const n = Number(id)
       for (const split of this.splits) {
-        const routine = split.routines.find(r => r.id === n || r.id === id)
-        if (routine) return routine
+        const workout = split.workouts.find(w => w.id === n || w.id === id)
+        if (workout) return workout
       }
       return null
     },
 
-    findRoutineContext(id) {
+    findWorkoutContext(id) {
       const n = Number(id)
       for (const split of this.splits) {
-        const index = split.routines.findIndex(r => r.id === n || r.id === id)
-        if (index >= 0) return { split, index, routine: split.routines[index] }
+        const index = split.workouts.findIndex(w => w.id === n || w.id === id)
+        if (index >= 0) return { split, index, workout: split.workouts[index] }
       }
       return null
     },
@@ -199,14 +199,14 @@ export const useDashboardStore = defineStore('dashboard', {
 
       await useLoaderStore().wrap(() => {
         const id = ++uid
-        this.splits.push({ id, title: name, routines: [] })
+        this.splits.push({ id, title: name, workouts: [] })
         if (!this.activeSplitId) this.activeSplitId = id
         snack.success(`Split "${name}" created`)
       })
       return true
     },
 
-    async addRoutine(title) {
+    async addWorkout(title) {
       const snack = useSnackbarStore()
       const split = this.getActiveSplit()
       if (!split) {
@@ -216,36 +216,36 @@ export const useDashboardStore = defineStore('dashboard', {
 
       const name = title?.trim()
       if (!name) {
-        snack.warning('Enter a routine title')
+        snack.warning('Enter a workout title')
         return false
       }
 
       await useLoaderStore().wrap(() => {
-        split.routines.push({
+        split.workouts.push({
           id: ++uid,
           title: name,
           done: false,
           exercises: [],
         })
-        snack.success(`Routine "${name}" created`)
+        snack.success(`Workout "${name}" created`)
       })
       return true
     },
 
-    async renameRoutine(id, title) {
+    async renameWorkout(id, title) {
       const snack = useSnackbarStore()
       const name = title?.trim()
       if (!name) {
-        snack.warning('Enter a routine title')
+        snack.warning('Enter a workout title')
         return false
       }
 
-      const r = this.getById(id)
-      if (!r) return false
+      const w = this.getById(id)
+      if (!w) return false
 
       await useLoaderStore().wrap(() => {
-        r.title = name
-        snack.success('Routine renamed')
+        w.title = name
+        snack.success('Workout renamed')
       })
       return true
     },
@@ -268,30 +268,30 @@ export const useDashboardStore = defineStore('dashboard', {
       return true
     },
 
-    async toggleRoutine(id) {
-      const r = this.getById(id)
-      if (!r) return
+    async toggleWorkout(id) {
+      const w = this.getById(id)
+      if (!w) return
 
       await useLoaderStore().wrap(() => {
-        r.done = !r.done
-        useSnackbarStore().success(r.done ? `"${r.title}" marked done` : `"${r.title}" unmarked`)
+        w.done = !w.done
+        useSnackbarStore().success(w.done ? `"${w.title}" marked done` : `"${w.title}" unmarked`)
       })
     },
 
-    async deleteRoutine(id) {
-      const ctx = this.findRoutineContext(id)
+    async deleteWorkout(id) {
+      const ctx = this.findWorkoutContext(id)
       if (!ctx) return
 
       const ok = await useConfirmStore().ask({
-        title: 'Delete routine?',
-        message: `"${ctx.routine.title}" and its exercises will be removed.`,
+        title: 'Delete workout?',
+        message: `"${ctx.workout.title}" and its exercises will be removed.`,
         confirmLabel: 'Delete',
       })
       if (!ok) return
 
       await useLoaderStore().wrap(() => {
-        ctx.split.routines = ctx.split.routines.filter(item => item.id !== id)
-        useSnackbarStore().success(`"${ctx.routine.title}" deleted`)
+        ctx.split.workouts = ctx.split.workouts.filter(item => item.id !== id)
+        useSnackbarStore().success(`"${ctx.workout.title}" deleted`)
       })
     },
 
@@ -301,7 +301,7 @@ export const useDashboardStore = defineStore('dashboard', {
 
       const ok = await useConfirmStore().ask({
         title: 'Delete split?',
-        message: `"${s.title}" and all its routines will be removed.`,
+        message: `"${s.title}" and all its workouts will be removed.`,
         confirmLabel: 'Delete',
       })
       if (!ok) return
@@ -336,14 +336,14 @@ export const useDashboardStore = defineStore('dashboard', {
 
       const ok = await useConfirmStore().ask({
         title: 'Reset progress?',
-        message: `All completed routines in "${split.title}" will be unmarked.`,
+        message: `All completed workouts in "${split.title}" will be unmarked.`,
         confirmLabel: 'Reset',
       })
       if (!ok) return
 
       await useLoaderStore().wrap(() => {
-        split.routines.forEach(r => {
-          r.done = false
+        split.workouts.forEach(w => {
+          w.done = false
         })
         useSnackbarStore().success('Workout progress reset')
       })

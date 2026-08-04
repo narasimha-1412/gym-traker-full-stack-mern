@@ -42,7 +42,7 @@ export const useAppStore = defineStore('app', {
     },
 
     openWorkout(id) {
-      this.router.push({ name: 'workout', params: { routineId: String(id) } })
+      this.router.push({ name: 'workout', params: { workoutId: String(id) } })
     },
 
     setWeightUnit(unit) {

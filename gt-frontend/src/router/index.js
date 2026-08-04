@@ -23,7 +23,7 @@ const router = createRouter({
       meta: { auth: true },
     },
     {
-      path: '/workout/:routineId',
+      path: '/workout/:workoutId',
       name: 'workout',
       component: WorkoutPage,
       meta: { auth: true },

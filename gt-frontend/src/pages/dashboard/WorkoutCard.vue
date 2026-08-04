@@ -1,33 +1,33 @@
 <script setup>
 defineProps({
-  routine: { type: Object, required: true },
+  workout: { type: Object, required: true },
 })
 defineEmits(['toggle', 'open', 'edit', 'delete'])
 </script>
 
 <template>
   <div
-    class="routine-card"
-    :class="{ done: routine.done }"
+    class="workout-card"
+    :class="{ done: workout.done }"
     role="button"
     tabindex="0"
-    @click="$emit('open', routine.id)"
-    @keydown.enter="$emit('open', routine.id)"
+    @click="$emit('open', workout.id)"
+    @keydown.enter="$emit('open', workout.id)"
   >
     <div class="accent" />
     <div class="body" @click.stop>
       <v-checkbox-btn
-        :model-value="routine.done"
+        :model-value="workout.done"
         color="success"
         density="comfortable"
-        @update:model-value="$emit('toggle', routine.id)"
+        @update:model-value="$emit('toggle', workout.id)"
         @click.stop
       />
     </div>
     <div class="meta">
-      <p class="title">{{ routine.title }}</p>
+      <p class="title">{{ workout.title }}</p>
       <p class="sub">
-        {{ routine.exercises.length }} exercise{{ routine.exercises.length === 1 ? '' : 's' }}
+        {{ workout.exercises.length }} exercise{{ workout.exercises.length === 1 ? '' : 's' }}
       </p>
     </div>
     <div class="menu-wrap" @click.stop>
@@ -39,7 +39,7 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
             variant="text"
             size="small"
             class="menu-btn"
-            aria-label="Routine actions"
+            aria-label="Workout actions"
             @click.stop
           >
             <v-icon icon="mdi-dots-vertical" size="20" />
@@ -49,13 +49,13 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
           <v-list-item
             prepend-icon="mdi-pencil-outline"
             title="Edit"
-            @click="$emit('edit', routine.id)"
+            @click="$emit('edit', workout.id)"
           />
           <v-list-item
             prepend-icon="mdi-delete-outline"
             title="Delete"
             class="danger"
-            @click="$emit('delete', routine.id)"
+            @click="$emit('delete', workout.id)"
           />
         </v-list>
       </v-menu>
@@ -64,7 +64,7 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
 </template>
 
 <style scoped lang="scss">
-.routine-card {
+.workout-card {
   display: flex;
   align-items: center;
   gap: 4px;
