@@ -6,7 +6,7 @@ export const DEFAULT_PASSWORD = 'IronLog123'
 
 export async function listUsers(req, res, next) {
   try {
-    const search = (req.body?.search || '').trim()
+    const search = req.body.search
     const filter = {}
 
     if (search) {
@@ -24,21 +24,15 @@ export async function listUsers(req, res, next) {
 
 export async function createUser(req, res, next) {
   try {
-    const name = (req.body.name || '').trim()
-    const email = (req.body.email || '').trim().toLowerCase()
+    const name = req.body.name
+    const email = req.body.email.toLowerCase()
     const password = req.body.password || DEFAULT_PASSWORD
-    const role = req.body.role === 'admin' ? 'admin' : 'user'
-
-    if (!name || !email) {
-      return sendFail(res, 'Fill in name and email', 400)
-    }
-    if (!email.includes('@')) {
-      return sendFail(res, 'Enter a valid email', 400)
-    }
 
     const exists = await User.findOne({ email })
     if (exists) {
-      return sendFail(res, 'Email already exists', 409, [{ field: 'email', message: 'Email already exists' }])
+      return sendFail(res, 'Email already exists', 409, [
+        { field: 'email', message: 'Email already exists' },
+      ])
     }
 
     const hashed = await bcrypt.hash(password, 10)
@@ -46,7 +40,7 @@ export async function createUser(req, res, next) {
       name,
       email,
       password: hashed,
-      role,
+      role: 'user',
       status: 'active',
     })
 

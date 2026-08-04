@@ -6,12 +6,8 @@ import { sendSuccess, sendFail } from '../utils/apiResponse.js'
 
 export async function login(req, res, next) {
   try {
-    const email = (req.body.email || '').trim().toLowerCase()
-    const password = req.body.password || ''
-
-    if (!email || !password) {
-      return sendFail(res, 'Enter a valid email and password', 400)
-    }
+    const email = req.body.email.trim().toLowerCase()
+    const password = req.body.password
 
     const user = await User.findOne({ email })
     if (!user || !(await bcrypt.compare(password, user.password))) {

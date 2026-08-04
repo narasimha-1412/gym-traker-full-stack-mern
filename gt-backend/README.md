@@ -87,13 +87,22 @@ Never commit `.env`.
 | `src/models/`      | Mongoose schemas                    |
 | `src/controllers/` | Request handlers                    |
 | `src/routes/`      | Express routers                     |
-| `src/middleware/`  | Shared middleware (auth, errors, …) |
+| `src/middleware/`  | Shared middleware (auth, validate, errors, …) |
+| `src/validators/`  | Zod schemas per feature (request shape) |
 | `src/utils/`       | Tokens, cookies, API response helpers |
 | `src/scripts/`     | One-off scripts (seed)              |
 
 - Keep route files thin; put logic in controllers
 - One model file per collection (e.g. `User.js`)
 - Mount API routes under `/api` from `routes/index.js`
+
+### Request validation (Zod)
+
+- Schemas live in `src/validators/`
+- `validate(schema)` / `validate(schema, 'params')` in `src/middleware/validate.js` runs **before** the controller
+- `.strict()` rejects unknown fields (stops clients injecting extra keys like `role`)
+- On failure → `{ success: false, message: "Validation failed", errors: [{ field, message }] }`
+- Controllers assume `req.body` / `req.params` are already cleaned
 
 ### API response envelope
 
@@ -142,6 +151,9 @@ gt-backend/
     ├── controllers/
     │   ├── auth.controller.js
     │   └── users.controller.js
+    ├── validators/
+    │   ├── auth.validators.js
+    │   └── users.validators.js
     ├── routes/
     │   ├── index.js
     │   ├── auth.routes.js
@@ -155,6 +167,7 @@ gt-backend/
     └── middleware/
         ├── requestLogger.js
         ├── errorHandler.js
+        ├── validate.js
         └── auth.js
 ```
 
@@ -177,6 +190,7 @@ gt-backend/
 - **CORS**: Allows no Origin or `localhost` / `127.0.0.1` (any port); `credentials: true` for refresh cookies
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack
 - **Auth**: Access JWT (default 2m, send as `Authorization: Bearer`); refresh JWT in `httpOnly` cookie `refreshToken` (path `/api/auth`)
-- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email)
+- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
+- **Validation**: Zod on login / list / create / `:id` params; unknown body keys rejected
 - **Seed**: `npm run seed:admin` → `alex@rivera.com` / `IronLog123` (admin)
 - **Workouts**: not implemented yet
