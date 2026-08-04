@@ -6,7 +6,16 @@ export const DEFAULT_PASSWORD = 'IronLog123'
 
 export async function listUsers(req, res, next) {
   try {
-    const users = await User.find().sort({ createdAt: 1 })
+    const search = (req.body?.search || '').trim()
+    const filter = {}
+
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const regex = new RegExp(escaped, 'i')
+      filter.$or = [{ name: regex }, { email: regex }]
+    }
+
+    const users = await User.find(filter).sort({ createdAt: 1 })
     sendSuccess(res, { users: users.map(u => u.toSafeJSON()) })
   } catch (err) {
     next(err)

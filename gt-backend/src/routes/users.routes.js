@@ -11,7 +11,7 @@ const router = Router()
 
 router.use(requireAuth, requireAdmin)
 
-router.get('/', listUsers)
+router.post('/list', listUsers)
 router.post('/', createUser)
 router.patch('/:id/status', toggleStatus)
 router.post('/:id/reset-password', resetPassword)

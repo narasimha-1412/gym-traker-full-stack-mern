@@ -166,7 +166,7 @@ gt-backend/
 | `POST` | `/api/auth/refresh` | Refresh cookie | `{ accessToken }` (rotates cookie) |
 | `POST` | `/api/auth/logout` | Public | `null` (clears refresh cookie) |
 | `GET` | `/api/auth/me` | Bearer access | `{ user }` |
-| `GET` | `/api/users` | Admin | `{ users: [...] }` |
+| `POST` | `/api/users/list` | Admin | `{ users: [...] }` — body `{ search }` (empty = all; matches name/email) |
 | `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
 | `PATCH` | `/api/users/:id/status` | Admin | `{ user }` |
 | `POST` | `/api/users/:id/reset-password` | Admin | `{ message }` |
@@ -177,6 +177,6 @@ gt-backend/
 - **CORS**: Allows no Origin or `localhost` / `127.0.0.1` (any port); `credentials: true` for refresh cookies
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack
 - **Auth**: Access JWT (default 2m, send as `Authorization: Bearer`); refresh JWT in `httpOnly` cookie `refreshToken` (path `/api/auth`)
-- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt
+- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email)
 - **Seed**: `npm run seed:admin` → `alex@rivera.com` / `IronLog123` (admin)
 - **Workouts**: not implemented yet

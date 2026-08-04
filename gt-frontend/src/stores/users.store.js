@@ -13,6 +13,10 @@ import { getData, apiMessage } from '@/networks/base/envelope'
 export const DEFAULT_PASSWORD = 'IronLog123'
 export const EMAIL_DOMAIN = 'ironlog.com'
 
+const SEARCH_DEBOUNCE_MS = 300
+
+let searchTimer = null
+
 export function nameToEmailLocal(name) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return ''
@@ -36,6 +40,8 @@ export const useUsersStore = defineStore('users', {
     name: '',
     password: DEFAULT_PASSWORD,
     list: [],
+    search: '',
+    searching: false,
   }),
 
   getters: {
@@ -43,16 +49,36 @@ export const useUsersStore = defineStore('users', {
   },
 
   actions: {
-    async fetchList() {
+    setSearch(value) {
+      this.search = value ?? ''
+      clearTimeout(searchTimer)
+      searchTimer = setTimeout(() => {
+        this.fetchList({ quiet: true })
+      }, SEARCH_DEBOUNCE_MS)
+    },
+
+    clearSearch() {
+      this.search = ''
+      clearTimeout(searchTimer)
+      this.fetchList({ quiet: true })
+    },
+
+    async fetchList({ quiet = false } = {}) {
       const snack = useSnackbarStore()
-      await useLoaderStore().wrap(async () => {
+      const run = async () => {
+        this.searching = true
         try {
-          const data = getData(await listUsers())
+          const data = getData(await listUsers({ search: this.search }))
           this.list = data.users
         } catch (err) {
           snack.error(apiMessage(err, 'Could not load users'))
+        } finally {
+          this.searching = false
         }
-      })
+      }
+
+      if (quiet) await run()
+      else await useLoaderStore().wrap(run)
     },
 
     async create() {
@@ -78,8 +104,7 @@ export const useUsersStore = defineStore('users', {
           })
           this.name = ''
           this.password = DEFAULT_PASSWORD
-          const data = getData(await listUsers())
-          this.list = data.users
+          await this.fetchList({ quiet: true })
           snack.success('User created')
         } catch (err) {
           snack.error(apiMessage(err, 'Could not create user'))

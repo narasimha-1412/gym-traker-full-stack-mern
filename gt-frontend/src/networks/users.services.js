@@ -1,7 +1,8 @@
 import { routes } from './base/apiRoutes'
 import { getAPIResponse, postAPIResponse, patchAPIResponse } from './base/api'
 
-export const listUsers = () => getAPIResponse(routes.users.list)
+export const listUsers = ({ search = '' } = {}) =>
+  postAPIResponse(routes.users.list, { search: search.trim() })
 
 export const createUser = body => postAPIResponse(routes.users.create, body)
 

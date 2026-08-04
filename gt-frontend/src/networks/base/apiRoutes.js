@@ -6,7 +6,7 @@ export const routes = {
     me: '/api/auth/me',
   },
   users: {
-    list: '/api/users',
+    list: '/api/users/list',
     create: '/api/users',
     status: id => `/api/users/${id}/status`,
     resetPassword: id => `/api/users/${id}/reset-password`,
