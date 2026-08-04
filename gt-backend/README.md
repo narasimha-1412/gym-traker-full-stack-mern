@@ -51,7 +51,7 @@ See parent `compose.yaml`. This service is built from `Dockerfile` in this folde
 | `MONGODB_URI`        | Yes      | —       | MongoDB Atlas connection string |
 | `JWT_ACCESS_SECRET`  | Yes      | —       | Secret for access JWTs          |
 | `JWT_REFRESH_SECRET` | Yes      | —       | Secret for refresh JWTs         |
-| `JWT_ACCESS_EXPIRES` | No       | `2m`    | Access token lifetime           |
+| `JWT_ACCESS_EXPIRES` | No       | `15m`   | Access token lifetime           |
 | `JWT_REFRESH_EXPIRES`| No       | `7d`    | Refresh token lifetime          |
 | `PORT`               | No       | `5000`  | HTTP server port                |
 | `NODE_ENV`           | No       | —       | Set to `production` in prod     |
@@ -64,7 +64,7 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/gym-tracker?retryWrites=true&w=majority
 JWT_ACCESS_SECRET=change-me-access-secret
 JWT_REFRESH_SECRET=change-me-refresh-secret
-JWT_ACCESS_EXPIRES=2m
+JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 # production example:
 # NODE_ENV=production
@@ -199,7 +199,7 @@ gt-backend/
 | ------ | ---- | ------ | -------------- |
 | `POST` | `/api/auth/login` | Public | `{ accessToken, user }` + refresh cookie |
 | `POST` | `/api/auth/refresh` | Refresh cookie | `{ accessToken }` (rotates cookie) |
-| `POST` | `/api/auth/logout` | Public | `null` (clears refresh cookie) |
+| `POST` | `/api/auth/logout` | Public | `null` — clears `sessionId` + refresh cookie |
 | `GET` | `/api/auth/me` | Bearer access | `{ user }` |
 | `POST` | `/api/users/list` | Admin | `{ users: [...] }` — body `{ search }` (empty = all; matches name/email) |
 | `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
@@ -212,7 +212,7 @@ gt-backend/
 - **CORS**: Dev allows localhost; prod requires `CORS_ORIGINS` allowlist; `credentials: true`
 - **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'strict'`
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack (5xx)
-- **Auth**: Access JWT (default 2m, send as `Authorization: Bearer`); refresh JWT in `httpOnly` cookie `refreshToken` (path `/api/auth`)
+- **Auth**: Access JWT (default **15m**, Bearer); refresh JWT in `httpOnly` cookie `refreshToken` (default **7d**, path `/api/auth`). **Single session per user** via `User.sessionId` (`sid` in both tokens): new login replaces `sessionId` and invalidates other devices; logout sets `sessionId` to `null`; `requireAuth` and refresh both check `sid`
 - **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
 - **Validation**: Zod on login / list / create / `:id` params; unknown body keys rejected
 - **Rate limits**: login 20/15min; users list 60/min (per IP)

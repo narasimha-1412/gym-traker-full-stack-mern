@@ -1,7 +1,8 @@
-import { verifyAccess } from '../utils/tokens.js'
+import { User } from '../models/User.js'
+import { verifyAccess, isActiveSession } from '../utils/tokens.js'
 import { sendFail } from '../utils/apiResponse.js'
 
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const header = req.headers.authorization || ''
   const token = header.startsWith('Bearer ') ? header.slice(7) : null
 
@@ -11,7 +12,13 @@ export function requireAuth(req, res, next) {
 
   try {
     const payload = verifyAccess(token)
-    req.user = { id: payload.id, role: payload.role }
+    const user = await User.findById(payload.id).select('sessionId status role')
+
+    if (!user || user.status === 'disabled' || !isActiveSession(user, payload.sid)) {
+      return sendFail(res, 'Unauthorized', 401)
+    }
+
+    req.user = { id: payload.id, role: user.role }
     next()
   } catch {
     return sendFail(res, 'Unauthorized', 401)

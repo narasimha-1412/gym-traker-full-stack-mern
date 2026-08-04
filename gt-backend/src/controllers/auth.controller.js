@@ -1,6 +1,12 @@
 import bcrypt from 'bcryptjs'
 import { User } from '../models/User.js'
-import { signAccess, signRefresh, verifyRefresh } from '../utils/tokens.js'
+import {
+  signAccess,
+  signRefresh,
+  verifyRefresh,
+  newSessionId,
+  isActiveSession,
+} from '../utils/tokens.js'
 import { setRefreshCookie, clearRefreshCookie, REFRESH_COOKIE } from '../utils/cookies.js'
 import { sendSuccess, sendFail } from '../utils/apiResponse.js'
 
@@ -17,6 +23,9 @@ export async function login(req, res, next) {
     if (user.status === 'disabled') {
       return sendFail(res, 'Account disabled', 403)
     }
+
+    user.sessionId = newSessionId()
+    await user.save()
 
     const accessToken = signAccess(user)
     setRefreshCookie(res, signRefresh(user))
@@ -43,7 +52,7 @@ export async function refresh(req, res, next) {
     }
 
     const user = await User.findById(payload.id)
-    if (!user || user.status === 'disabled') {
+    if (!user || user.status === 'disabled' || !isActiveSession(user, payload.sid)) {
       clearRefreshCookie(res)
       return sendFail(res, 'Unauthorized', 401)
     }
@@ -57,6 +66,20 @@ export async function refresh(req, res, next) {
 
 export async function logout(req, res, next) {
   try {
+    const token = req.cookies?.[REFRESH_COOKIE]
+    if (token) {
+      try {
+        const payload = verifyRefresh(token)
+        const user = await User.findById(payload.id)
+        if (user && isActiveSession(user, payload.sid)) {
+          user.sessionId = null
+          await user.save()
+        }
+      } catch {
+        // ignore invalid cookie
+      }
+    }
+
     clearRefreshCookie(res)
     sendSuccess(res, null)
   } catch (err) {

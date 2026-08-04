@@ -218,7 +218,7 @@ Unknown paths redirect to `/`.
 
 ## Feature notes
 
-- **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session
+- **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
 - **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password against `/api/users`; email auto-generated from name as camelCase `@ironlog.com` (e.g. `Tony Stark` → `tonyStark@ironlog.com`); default password `IronLog123`; list/search via one call `POST /api/users/list` body `{ search }` (empty string = all; debounced 300ms, spinner in list while loading); per-user ⋮ menu for reset password / enable-disable
 - **Dashboard** (`/`): routines list, progress ring, add / rename / delete routine, reset progress (still local mock)
 - **Workout**: exercises CRUD, mark done, weight unit from settings (still local mock)
