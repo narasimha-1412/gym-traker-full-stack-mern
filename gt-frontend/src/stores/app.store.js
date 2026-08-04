@@ -63,6 +63,13 @@ export const useAppStore = defineStore('app', {
       setAccessToken(this.accessToken)
     },
 
+    clearSession() {
+      this.setAccessToken(null)
+      this.loggedIn = false
+      this.user = emptyUser()
+      this.weightUnit = 'kg'
+    },
+
     loginSession(user, accessToken) {
       this.setAccessToken(accessToken)
       this.loggedIn = true
@@ -73,12 +80,7 @@ export const useAppStore = defineStore('app', {
         role: user.role || 'user',
         status: user.status || 'active',
       }
-    },
-
-    clearSession() {
-      this.setAccessToken(null)
-      this.loggedIn = false
-      this.user = emptyUser()
+      this.setWeightUnit(user.weightUnit || 'kg')
     },
 
     async bootstrap() {

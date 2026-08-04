@@ -1,9 +1,14 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useAppStore } from '@/stores/app.store'
 import { useSettingsStore } from '@/stores/settings.store'
 
 const app = useAppStore()
 const settings = useSettingsStore()
+
+onMounted(() => {
+  settings.loadProfile()
+})
 </script>
 
 <template>
@@ -56,7 +61,7 @@ const settings = useSettingsStore()
             @keyup.enter="settings.saveProfile()"
           />
           <v-text-field
-            :model-value="app.user.email"
+            :model-value="settings.profile.email"
             label="Email"
             prepend-inner-icon="mdi-email-outline"
             rounded="lg"
@@ -95,12 +100,23 @@ const settings = useSettingsStore()
         <p class="section">Change password</p>
         <div class="fields">
           <v-text-field
+            v-model="settings.pw.current"
+            label="Current password"
+            :type="settings.show.current ? 'text' : 'password'"
+            prepend-inner-icon="mdi-lock-outline"
+            :append-inner-icon="settings.eye('current')"
+            rounded="lg"
+            hide-details="auto"
+            @click:append-inner="settings.toggleShow('current')"
+          />
+          <v-text-field
             v-model="settings.pw.next"
             label="New password"
             :type="settings.show.next ? 'text' : 'password'"
             prepend-inner-icon="mdi-lock-plus-outline"
             :append-inner-icon="settings.eye('next')"
             rounded="lg"
+            hide-details="auto"
             @click:append-inner="settings.toggleShow('next')"
           />
           <v-text-field
@@ -110,6 +126,7 @@ const settings = useSettingsStore()
             prepend-inner-icon="mdi-lock-check-outline"
             :append-inner-icon="settings.eye('confirm')"
             rounded="lg"
+            hide-details="auto"
             @click:append-inner="settings.toggleShow('confirm')"
             @keyup.enter="settings.changePassword()"
           />

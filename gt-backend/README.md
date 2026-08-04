@@ -113,6 +113,7 @@ Never commit `.env`.
 
 - `src/middleware/rateLimit.js` — per-IP limits via `express-rate-limit`
 - `POST /api/auth/login` — 20 requests / 15 minutes
+- `POST /api/auth/password` — 10 requests / 15 minutes
 - `POST /api/users/list` — 60 requests / 1 minute
 - Over limit → `429` with `{ success: false, message: "Too many requests, try again later" }`
 
@@ -201,6 +202,8 @@ gt-backend/
 | `POST` | `/api/auth/refresh` | Refresh cookie | `{ accessToken }` (rotates cookie) |
 | `POST` | `/api/auth/logout` | Public | `null` — clears `sessionId` + refresh cookie |
 | `GET` | `/api/auth/me` | Bearer access | `{ user }` |
+| `PATCH` | `/api/auth/me` | Bearer access | `{ user }` — body `{ name, weightUnit }` |
+| `POST` | `/api/auth/password` | Bearer access | `{ accessToken }` — body `{ currentPassword, newPassword }`; rotates session |
 | `POST` | `/api/users/list` | Admin | `{ users: [...] }` — body `{ search }` (empty = all; matches name/email) |
 | `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
 | `PATCH` | `/api/users/:id/status` | Admin | `{ user }` |
@@ -213,9 +216,11 @@ gt-backend/
 - **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'strict'`
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack (5xx)
 - **Auth**: Access JWT (default **15m**, Bearer); refresh JWT in `httpOnly` cookie `refreshToken` (default **7d**, path `/api/auth`). **Single session per user** via `User.sessionId` (`sid` in both tokens): new login replaces `sessionId` and invalidates other devices; logout sets `sessionId` to `null`; `requireAuth` and refresh both check `sid`
-- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
-- **Validation**: Zod on login / list / create / `:id` params; unknown body keys rejected
-- **Rate limits**: login 20/15min; users list 60/min (per IP)
+- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; `weightUnit` `kg` \| `lb`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
+- **Profile**: `PATCH /api/auth/me` updates own `name` + `weightUnit` only
+- **Password**: `POST /api/auth/password` requires current password; min 8 chars; rotates `sessionId` and returns new access + refresh cookie (other devices signed out)
+- **Validation**: Zod on login / list / create / profile / password / `:id` params; unknown body keys rejected
+- **Rate limits**: login 20/15min; change password 10/15min; users list 60/min (per IP)
 - **HTTP hardening**: Helmet security headers; JSON body max `32kb` (413 if larger); prod 500s return generic message only
 - **Seed**: `npm run seed:admin` → `alex@rivera.com` / `IronLog123` (admin)
 - **Workouts**: not implemented yet

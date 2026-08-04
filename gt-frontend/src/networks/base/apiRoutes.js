@@ -4,6 +4,7 @@ export const routes = {
     refresh: '/api/auth/refresh',
     logout: '/api/auth/logout',
     me: '/api/auth/me',
+    password: '/api/auth/password',
   },
   users: {
     list: '/api/users/list',

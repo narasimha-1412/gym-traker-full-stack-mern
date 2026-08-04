@@ -98,3 +98,46 @@ export async function me(req, res, next) {
     next(err)
   }
 }
+
+export async function updateMe(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user || user.status === 'disabled') {
+      return sendFail(res, 'Unauthorized', 401)
+    }
+
+    user.name = req.body.name
+    user.weightUnit = req.body.weightUnit
+    await user.save()
+
+    sendSuccess(res, { user: user.toSafeJSON() })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function changePassword(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user || user.status === 'disabled') {
+      return sendFail(res, 'Unauthorized', 401)
+    }
+
+    const { currentPassword, newPassword } = req.body
+
+    if (!(await bcrypt.compare(currentPassword, user.password))) {
+      return sendFail(res, 'Current password is incorrect', 401)
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10)
+    user.sessionId = newSessionId()
+    await user.save()
+
+    const accessToken = signAccess(user)
+    setRefreshCookie(res, signRefresh(user))
+
+    sendSuccess(res, { accessToken })
+  } catch (err) {
+    next(err)
+  }
+}

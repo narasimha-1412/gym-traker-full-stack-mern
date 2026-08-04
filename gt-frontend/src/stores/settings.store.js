@@ -4,19 +4,21 @@ import { useLoginStore } from './login.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
 import { useConfirmStore } from './confirm.store'
+import { updateProfile, changePassword as changePasswordRequest } from '@/networks/auth.services'
+import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     tab: 'profile', // profile | password
     profile: { name: '', email: '', weightUnit: 'kg' },
-    pw: { next: '', confirm: '' },
-    show: { next: false, confirm: false },
+    pw: { current: '', next: '', confirm: '' },
+    show: { current: false, next: false, confirm: false },
   }),
 
   actions: {
     resetForm() {
-      this.pw = { next: '', confirm: '' }
-      this.show = { next: false, confirm: false }
+      this.pw = { current: '', next: '', confirm: '' }
+      this.show = { current: false, next: false, confirm: false }
     },
 
     loadProfile() {
@@ -51,6 +53,7 @@ export const useSettingsStore = defineStore('settings', {
 
     async saveProfile() {
       const snack = useSnackbarStore()
+      const app = useAppStore()
       const name = this.profile.name.trim()
       if (!name) {
         snack.warning('Username is required')
@@ -61,34 +64,67 @@ export const useSettingsStore = defineStore('settings', {
         return
       }
 
-      await useLoaderStore().wrap(() => {
-        useAppStore().updateProfile({
-          name,
-          weightUnit: this.profile.weightUnit,
-        })
-        snack.success('Profile updated')
+      const weightUnit = this.profile.weightUnit
+      if (name === app.user.name && weightUnit === app.weightUnit) {
+        snack.warning('No changes to save')
+        return
+      }
+
+      await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(
+            await updateProfile({
+              name,
+              weightUnit,
+            })
+          )
+          app.updateProfile({
+            name: data.user.name,
+            weightUnit: data.user.weightUnit,
+          })
+          this.loadProfile()
+          snack.success('Profile updated')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not update profile'))
+        }
       })
     },
 
     async changePassword() {
       const snack = useSnackbarStore()
-      const { next, confirm } = this.pw
-      if (!next || !confirm) {
-        snack.warning('Fill in both password fields')
+      const { current, next, confirm } = this.pw
+
+      if (!current || !next || !confirm) {
+        snack.warning('Fill in all password fields')
         return
       }
       if (next !== confirm) {
         snack.error('Passwords do not match')
         return
       }
-      if (next.length < 6) {
-        snack.warning('Password must be at least 6 characters')
+      if (next.length < 8) {
+        snack.warning('Password must be at least 8 characters')
+        return
+      }
+      if (next === current) {
+        snack.warning('New password must be different')
         return
       }
 
-      await useLoaderStore().wrap(() => {
-        this.resetForm()
-        snack.success('Password updated')
+      await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(
+            await changePasswordRequest({
+              currentPassword: current,
+              newPassword: next,
+            })
+          )
+          useAppStore().setAccessToken(data.accessToken)
+          this.resetForm()
+          snack.success('Password updated')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not update password'))
+        }
       })
     },
 
