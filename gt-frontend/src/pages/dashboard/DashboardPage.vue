@@ -1,13 +1,92 @@
 <script setup>
+import { ref } from 'vue'
 import { useAppStore } from '@/stores/app.store'
 import { useDashboardStore } from '@/stores/dashboard.store'
 import { useSettingsStore } from '@/stores/settings.store'
+import { useSnackbarStore } from '@/stores/snackbar.store'
 import ProgressRing from './ProgressRing.vue'
 import RoutineCard from './RoutineCard.vue'
+import SplitCard from './SplitCard.vue'
 
 const app = useAppStore()
 const dash = useDashboardStore()
 const settings = useSettingsStore()
+const snack = useSnackbarStore()
+
+const tab = ref('routines')
+const addOpen = ref(false)
+const newTitle = ref('')
+const editOpen = ref(false)
+const editId = ref(null)
+const editTitle = ref('')
+const editKind = ref('routine')
+
+function openAdd() {
+  if (tab.value === 'routines' && !dash.getActiveSplit()) {
+    snack.warning('Create a split first')
+    tab.value = 'splits'
+    return
+  }
+  newTitle.value = ''
+  addOpen.value = true
+}
+
+function closeAdd() {
+  addOpen.value = false
+  newTitle.value = ''
+}
+
+async function submitAdd() {
+  if (tab.value === 'splits') {
+    if (await dash.addSplit(newTitle.value)) closeAdd()
+    return
+  }
+
+  const result = await dash.addRoutine(newTitle.value)
+  if (result === 'need-split') {
+    closeAdd()
+    tab.value = 'splits'
+    return
+  }
+  if (result) closeAdd()
+}
+
+function openEditRoutine(id) {
+  const r = dash.getById(id)
+  if (!r) return
+  editKind.value = 'routine'
+  editId.value = id
+  editTitle.value = r.title
+  editOpen.value = true
+}
+
+function openEditSplit(id) {
+  const s = dash.getSplitById(id)
+  if (!s) return
+  editKind.value = 'split'
+  editId.value = id
+  editTitle.value = s.title
+  editOpen.value = true
+}
+
+function closeEdit() {
+  editOpen.value = false
+  editId.value = null
+  editTitle.value = ''
+  editKind.value = 'routine'
+}
+
+async function saveEdit() {
+  const ok =
+    editKind.value === 'split'
+      ? await dash.renameSplit(editId.value, editTitle.value)
+      : await dash.renameRoutine(editId.value, editTitle.value)
+  if (ok) closeEdit()
+}
+
+async function selectSplit(id) {
+  if (await dash.setActiveSplit(id)) tab.value = 'routines'
+}
 </script>
 
 <template>
@@ -27,7 +106,7 @@ const settings = useSettingsStore()
           </template>
         </v-tooltip>
         <v-btn
-          v-if="app.isAdmin"
+          v-if="app.isAdmin()"
           icon
           variant="text"
           size="small"
@@ -51,12 +130,17 @@ const settings = useSettingsStore()
 
     <div class="content">
       <div class="progress-panel">
-        <ProgressRing :percent="dash.progress" :size="76" />
+        <ProgressRing :percent="dash.getProgress().percent" :size="76" />
         <div class="progress-meta">
           <p class="panel-label">Workout progress</p>
           <p class="panel-text">
-            <span class="mono">{{ dash.doneCount }}</span> of
-            <span class="mono">{{ dash.totalCount }}</span> routines completed
+            <template v-if="dash.getActiveSplit()">
+              <span class="split-name">{{ dash.getActiveSplit().title }}</span>
+              ·
+              <span class="mono">{{ dash.getProgress().done }}</span> of
+              <span class="mono">{{ dash.getProgress().total }}</span> routines completed
+            </template>
+            <template v-else>Create a split to track progress</template>
           </p>
         </div>
         <v-btn
@@ -71,64 +155,114 @@ const settings = useSettingsStore()
         </v-btn>
       </div>
 
-      <v-row dense>
-        <v-col v-for="r in dash.routines" :key="r.id" cols="12" sm="6" md="4">
-          <RoutineCard
-            :routine="r"
-            @toggle="dash.toggleRoutine"
-            @open="dash.openWorkout"
-            @edit="dash.openEdit"
-            @delete="dash.deleteRoutine"
-          />
-        </v-col>
-      </v-row>
+      <v-tabs v-model="tab" class="dash-tabs" color="primary" density="comfortable">
+        <v-tab value="routines">Routines</v-tab>
+        <v-tab value="splits">Splits</v-tab>
+      </v-tabs>
+
+      <v-tabs-window v-model="tab" class="tabs-window">
+        <v-tabs-window-item value="routines">
+          <div v-if="!dash.getActiveSplit()" class="empty">
+            <p class="empty-title">No active split</p>
+            <p class="empty-text">Create a split first, then add routines.</p>
+            <button class="btn-gradient" type="button" @click="tab = 'splits'">Go to Splits</button>
+          </div>
+          <div v-else-if="!dash.getActiveRoutines().length" class="empty">
+            <p class="empty-title">No routines yet</p>
+            <p class="empty-text">Add a routine to "{{ dash.getActiveSplit().title }}".</p>
+          </div>
+          <v-row v-else density="comfortable">
+            <v-col v-for="r in dash.getActiveRoutines()" :key="r.id" cols="12" sm="6" md="4">
+              <RoutineCard
+                :routine="r"
+                @toggle="dash.toggleRoutine"
+                @open="dash.openWorkout"
+                @edit="openEditRoutine"
+                @delete="dash.deleteRoutine"
+              />
+            </v-col>
+          </v-row>
+        </v-tabs-window-item>
+
+        <v-tabs-window-item value="splits">
+          <div v-if="!dash.splits.length" class="empty">
+            <p class="empty-title">No splits yet</p>
+            <p class="empty-text">Create your first split to organize routines.</p>
+          </div>
+          <v-row v-else density="comfortable">
+            <v-col v-for="s in dash.splits" :key="s.id" cols="12" sm="6" md="4">
+              <SplitCard
+                :split="s"
+                :active="s.id === dash.activeSplitId"
+                @select="selectSplit"
+                @edit="openEditSplit"
+                @delete="dash.deleteSplit"
+              />
+            </v-col>
+          </v-row>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </div>
 
-    <button class="fab" type="button" aria-label="Add routine" @click="dash.addOpen = true">
+    <button
+      class="fab"
+      type="button"
+      :aria-label="tab === 'splits' ? 'Add split' : 'Add routine'"
+      @click="openAdd()"
+    >
       <v-icon icon="mdi-plus" size="28" />
     </button>
 
-    <v-dialog v-model="dash.addOpen" max-width="400" content-class="dlg">
+    <v-dialog
+      :model-value="addOpen"
+      max-width="400"
+      content-class="dlg"
+      @update:model-value="v => !v && closeAdd()"
+    >
       <v-card class="dlg-card">
-        <v-card-title class="dlg-title">Add routine</v-card-title>
+        <v-card-title class="dlg-title">
+          {{ tab === 'splits' ? 'Add split' : 'Add routine' }}
+        </v-card-title>
         <v-card-text>
           <v-text-field
-            v-model="dash.newTitle"
-            label="Routine title"
+            v-model="newTitle"
+            :label="tab === 'splits' ? 'Split name' : 'Routine title'"
             prepend-inner-icon="mdi-dumbbell"
             rounded="lg"
             autofocus
-            @keyup.enter="dash.addRoutine()"
+            @keyup.enter="submitAdd()"
           />
         </v-card-text>
         <v-card-actions class="dlg-actions">
-          <v-btn variant="outlined" class="btn-ghost" @click="dash.addOpen = false">Cancel</v-btn>
-          <button class="btn-gradient" type="button" @click="dash.addRoutine()">Add</button>
+          <v-btn variant="outlined" class="btn-ghost" @click="closeAdd()">Cancel</v-btn>
+          <button class="btn-gradient" type="button" @click="submitAdd()">Add</button>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog
-      :model-value="dash.editOpen"
+      :model-value="editOpen"
       max-width="400"
       content-class="dlg"
-      @update:model-value="v => !v && dash.closeEdit()"
+      @update:model-value="v => !v && closeEdit()"
     >
       <v-card class="dlg-card">
-        <v-card-title class="dlg-title">Rename routine</v-card-title>
+        <v-card-title class="dlg-title">
+          {{ editKind === 'split' ? 'Rename split' : 'Rename routine' }}
+        </v-card-title>
         <v-card-text>
           <v-text-field
-            v-model="dash.editTitle"
-            label="Routine title"
+            v-model="editTitle"
+            :label="editKind === 'split' ? 'Split name' : 'Routine title'"
             prepend-inner-icon="mdi-pencil-outline"
             rounded="lg"
             autofocus
-            @keyup.enter="dash.renameRoutine()"
+            @keyup.enter="saveEdit()"
           />
         </v-card-text>
         <v-card-actions class="dlg-actions">
-          <v-btn variant="outlined" class="btn-ghost" @click="dash.closeEdit()">Cancel</v-btn>
-          <button class="btn-gradient" type="button" @click="dash.renameRoutine()">Save</button>
+          <v-btn variant="outlined" class="btn-ghost" @click="closeEdit()">Cancel</v-btn>
+          <button class="btn-gradient" type="button" @click="saveEdit()">Save</button>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -209,7 +343,7 @@ const settings = useSettingsStore()
   align-items: center;
   gap: 16px;
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   background: $surface;
   border: 1px solid $stroke;
   border-radius: $radius;
@@ -253,9 +387,46 @@ const settings = useSettingsStore()
   color: $text;
 }
 
+.split-name {
+  color: $blue;
+}
+
 .mono {
   font-family: 'JetBrains Mono', monospace;
   color: $blue;
+}
+
+.dash-tabs {
+  margin-bottom: 12px;
+}
+
+.tabs-window {
+  min-height: 120px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 28px 20px;
+  background: $surface;
+  border: 1px dashed $stroke;
+  border-radius: $radius;
+}
+
+.empty-title {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.empty-text {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: $muted;
 }
 
 .fab {

@@ -44,11 +44,11 @@ export const useUsersStore = defineStore('users', {
     searching: false,
   }),
 
-  getters: {
-    generatedEmail: state => emailFromName(state.name),
-  },
-
   actions: {
+    getGeneratedEmail() {
+      return emailFromName(this.name)
+    },
+
     setSearch(value) {
       this.search = value ?? ''
       clearTimeout(searchTimer)
@@ -84,7 +84,7 @@ export const useUsersStore = defineStore('users', {
     async create() {
       const snack = useSnackbarStore()
       const name = this.name.trim()
-      const email = this.generatedEmail
+      const email = this.getGeneratedEmail()
 
       if (!name) {
         snack.error('Enter a name')
@@ -158,7 +158,7 @@ export const useUsersStore = defineStore('users', {
 
     async copyGeneratedEmail() {
       const snack = useSnackbarStore()
-      const email = this.generatedEmail
+      const email = this.getGeneratedEmail()
       if (!email) {
         snack.error('Enter a name first')
         return

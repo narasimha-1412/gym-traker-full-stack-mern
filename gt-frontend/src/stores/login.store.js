@@ -9,7 +9,6 @@ export const useLoginStore = defineStore('login', {
   state: () => ({
     email: '',
     password: '',
-    showPassword: false,
   }),
 
   actions: {
@@ -38,14 +37,9 @@ export const useLoginStore = defineStore('login', {
       })
     },
 
-    toggleShowPassword() {
-      this.showPassword = !this.showPassword
-    },
-
     reset() {
       this.email = ''
       this.password = ''
-      this.showPassword = false
     },
   },
 })

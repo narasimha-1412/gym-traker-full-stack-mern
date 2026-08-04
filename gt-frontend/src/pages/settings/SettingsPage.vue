@@ -1,14 +1,33 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app.store'
 import { useSettingsStore } from '@/stores/settings.store'
 
 const app = useAppStore()
 const settings = useSettingsStore()
 
+const tab = ref('profile')
+const show = ref({ current: false, next: false, confirm: false })
+
 onMounted(() => {
+  tab.value = 'profile'
+  show.value = { current: false, next: false, confirm: false }
   settings.loadProfile()
 })
+
+function eyeIcon(key) {
+  return show.value[key] ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
+}
+
+function toggleShow(key) {
+  show.value[key] = !show.value[key]
+}
+
+async function updatePassword() {
+  if (await settings.changePassword()) {
+    show.value = { current: false, next: false, confirm: false }
+  }
+}
 </script>
 
 <template>
@@ -31,9 +50,9 @@ onMounted(() => {
           type="button"
           role="tab"
           class="tab"
-          :class="{ active: settings.tab === 'profile' }"
-          :aria-selected="settings.tab === 'profile'"
-          @click="settings.setTab('profile')"
+          :class="{ active: tab === 'profile' }"
+          :aria-selected="tab === 'profile'"
+          @click="tab = 'profile'"
         >
           Profile
         </button>
@@ -41,15 +60,15 @@ onMounted(() => {
           type="button"
           role="tab"
           class="tab"
-          :class="{ active: settings.tab === 'password' }"
-          :aria-selected="settings.tab === 'password'"
-          @click="settings.setTab('password')"
+          :class="{ active: tab === 'password' }"
+          :aria-selected="tab === 'password'"
+          @click="tab = 'password'"
         >
           Change password
         </button>
       </div>
 
-      <div v-if="settings.tab === 'profile'" class="panel">
+      <div v-if="tab === 'profile'" class="panel">
         <p class="section">Profile</p>
         <div class="fields">
           <v-text-field
@@ -102,36 +121,36 @@ onMounted(() => {
           <v-text-field
             v-model="settings.pw.current"
             label="Current password"
-            :type="settings.show.current ? 'text' : 'password'"
+            :type="show.current ? 'text' : 'password'"
             prepend-inner-icon="mdi-lock-outline"
-            :append-inner-icon="settings.eye('current')"
+            :append-inner-icon="eyeIcon('current')"
             rounded="lg"
             hide-details="auto"
-            @click:append-inner="settings.toggleShow('current')"
+            @click:append-inner="toggleShow('current')"
           />
           <v-text-field
             v-model="settings.pw.next"
             label="New password"
-            :type="settings.show.next ? 'text' : 'password'"
+            :type="show.next ? 'text' : 'password'"
             prepend-inner-icon="mdi-lock-plus-outline"
-            :append-inner-icon="settings.eye('next')"
+            :append-inner-icon="eyeIcon('next')"
             rounded="lg"
             hide-details="auto"
-            @click:append-inner="settings.toggleShow('next')"
+            @click:append-inner="toggleShow('next')"
           />
           <v-text-field
             v-model="settings.pw.confirm"
             label="Confirm new password"
-            :type="settings.show.confirm ? 'text' : 'password'"
+            :type="show.confirm ? 'text' : 'password'"
             prepend-inner-icon="mdi-lock-check-outline"
-            :append-inner-icon="settings.eye('confirm')"
+            :append-inner-icon="eyeIcon('confirm')"
             rounded="lg"
             hide-details="auto"
-            @click:append-inner="settings.toggleShow('confirm')"
-            @keyup.enter="settings.changePassword()"
+            @click:append-inner="toggleShow('confirm')"
+            @keyup.enter="updatePassword()"
           />
         </div>
-        <button class="btn-gradient" type="button" @click="settings.changePassword()">
+        <button class="btn-gradient" type="button" @click="updatePassword()">
           Update password
         </button>
       </div>

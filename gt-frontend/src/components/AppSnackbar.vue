@@ -14,7 +14,7 @@ const snack = useSnackbarStore()
     multi-line
   >
     <div class="body">
-      <v-icon :icon="snack.icon" size="20" class="icon" />
+      <v-icon :icon="snack.getIcon()" size="20" class="icon" />
       <span>{{ snack.message }}</span>
     </div>
     <template #actions>

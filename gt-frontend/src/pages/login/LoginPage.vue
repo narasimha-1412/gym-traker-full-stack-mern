@@ -1,7 +1,9 @@
 <script setup>
+import { ref } from 'vue'
 import { useLoginStore } from '@/stores/login.store'
 
 const login = useLoginStore()
+const showPassword = ref(false)
 </script>
 
 <template>
@@ -32,11 +34,11 @@ const login = useLoginStore()
         <v-text-field
           v-model="login.password"
           label="Password"
-          :type="login.showPassword ? 'text' : 'password'"
+          :type="showPassword ? 'text' : 'password'"
           prepend-inner-icon="mdi-lock-outline"
-          :append-inner-icon="login.showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+          :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
           rounded="lg"
-          @click:append-inner="login.toggleShowPassword()"
+          @click:append-inner="showPassword = !showPassword"
           @keyup.enter="login.submit()"
         />
       </div>

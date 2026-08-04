@@ -81,13 +81,15 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 ### Stores
 
 - File name pattern: `<name>.store.js` (e.g. `login.store.js`)
-- Export: `use<Name>Store` via Pinia `defineStore` (options API: `state` / `getters` / `actions`)
+- Export: `use<Name>Store` via Pinia `defineStore` (options API: `state` / `actions`; prefer simple action helpers over getters)
 - **One store per page** for that page’s data and actions
 - `app.store.js` holds shared app state (auth session, access token, user, weight unit, navigation)
 - `snackbar.store.js` holds global toast notifications (success / error / warning / info)
 - `loader.store.js` holds the global overlay loader (`wrap()` around async work)
 - `confirm.store.js` holds the shared confirm dialog (`ask()` → promise)
-- Keep data logic in stores; keep pages presentational where possible
+- Keep **domain data and mutations** in stores (plus loader / snackbar / confirm around them)
+- Keep **UI chrome** in pages: tabs, dialog open/form fields, password visibility, accordion expand
+- Prefer plain functions (`getActiveSplit()`, `isAdmin()`) over getters when reading derived values
 
 ### Routing
 
@@ -177,7 +179,8 @@ gt-frontend/
     │   ├── dashboard/
     │   │   ├── DashboardPage.vue
     │   │   ├── ProgressRing.vue
-    │   │   └── RoutineCard.vue
+    │   │   ├── RoutineCard.vue
+    │   │   └── SplitCard.vue
     │   ├── workout/
     │   │   └── WorkoutPage.vue
     │   ├── settings/
@@ -220,6 +223,6 @@ Unknown paths redirect to `/`.
 
 - **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
 - **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password against `/api/users`; email auto-generated from name as camelCase `@ironlog.com` (e.g. `Tony Stark` → `tonyStark@ironlog.com`); default password `IronLog123`; list/search via one call `POST /api/users/list` body `{ search }` (empty string = all; debounced 300ms, spinner in list while loading); per-user ⋮ menu for reset password / enable-disable
-- **Dashboard** (`/`): routines list, progress ring, add / rename / delete routine, reset progress (still local mock)
-- **Workout**: exercises CRUD, mark done, weight unit from settings (still local mock)
+- **Dashboard** (`/`): tabs for **Routines** (default) and **Splits**; progress ring shows active split name + routine completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Routines); FAB / rename / delete for name-only create-edit on the current tab; routines and exercises stay scoped to the active split (still local mock)
+- **Workout**: exercises CRUD under a routine, mark done, weight unit from settings (still local mock)
 - **Settings**: profile via `PATCH /api/auth/me`; change password via `POST /api/auth/password` (current + new, min 8); log out hits API

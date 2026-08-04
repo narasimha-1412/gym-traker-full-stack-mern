@@ -63,7 +63,7 @@ router.beforeEach(to => {
     return { name: 'dashboard' }
   }
 
-  if (to.meta.admin && !app.isAdmin) {
+  if (to.meta.admin && !app.isAdmin()) {
     return { name: 'dashboard' }
   }
 

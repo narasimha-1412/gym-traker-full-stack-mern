@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app.store'
 import { useWorkoutStore } from '@/stores/workout.store'
 import { useSnackbarStore } from '@/stores/snackbar.store'
@@ -10,16 +10,61 @@ const router = useRouter()
 const app = useAppStore()
 const workout = useWorkoutStore()
 
-function loadFromRoute() {
-  const id = Number(route.params.routineId)
+const expandedId = ref(null)
+const dialogOpen = ref(false)
+const dialogMode = ref('add')
+const form = ref({ name: '', weight: '', description: '' })
+
+function loadFromRoute(routineId = route.params.routineId) {
+  const id = Number(routineId)
+  expandedId.value = null
   if (!Number.isFinite(id) || !workout.loadDraft(id)) {
     useSnackbarStore().error('Routine not found')
     router.replace({ name: 'dashboard' })
   }
 }
 
-onMounted(loadFromRoute)
-watch(() => route.params.routineId, loadFromRoute)
+onMounted(() => loadFromRoute())
+onBeforeRouteUpdate(to => {
+  loadFromRoute(to.params.routineId)
+})
+
+function toggleExpand(exId) {
+  expandedId.value = expandedId.value === exId ? null : exId
+}
+
+function openAdd() {
+  dialogMode.value = 'add'
+  form.value = { name: '', weight: '', description: '' }
+  dialogOpen.value = true
+}
+
+function openEdit(ex) {
+  dialogMode.value = 'edit'
+  form.value = {
+    ...ex,
+    weight: workout.sanitizeWeight(ex.weight),
+  }
+  dialogOpen.value = true
+}
+
+function closeDialog() {
+  dialogOpen.value = false
+}
+
+function setWeight(value) {
+  form.value.weight = workout.sanitizeWeight(value)
+}
+
+async function saveExercise() {
+  if (await workout.saveExercise(dialogMode.value, form.value)) closeDialog()
+}
+
+async function deleteExercise(exId) {
+  if (await workout.deleteExercise(exId) && expandedId.value === exId) {
+    expandedId.value = null
+  }
+}
 
 function onWeightKeydown(e) {
   const allow = [
@@ -38,7 +83,7 @@ function onWeightKeydown(e) {
   if (allow.includes(e.key)) return
   if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return
   if (/^\d$/.test(e.key)) return
-  if (e.key === '.' && !String(workout.dialog.form.weight ?? '').includes('.')) return
+  if (e.key === '.' && !String(form.value.weight ?? '').includes('.')) return
   e.preventDefault()
 }
 </script>
@@ -59,7 +104,7 @@ function onWeightKeydown(e) {
           color="primary"
           prepend-icon="mdi-plus"
           class="add-btn"
-          @click="workout.openAdd()"
+          @click="openAdd()"
         >
           Add Exercise
         </v-btn>
@@ -85,14 +130,14 @@ function onWeightKeydown(e) {
             v-for="ex in workout.draft.exercises"
             :key="ex.id"
             class="accordion"
-            :class="{ open: workout.expandedId === ex.id, done: ex.done }"
+            :class="{ open: expandedId === ex.id, done: ex.done }"
           >
             <div
               class="row"
               role="button"
               tabindex="0"
-              @click="workout.toggleExpand(ex.id)"
-              @keydown.enter.prevent="workout.toggleExpand(ex.id)"
+              @click="toggleExpand(ex.id)"
+              @keydown.enter.prevent="toggleExpand(ex.id)"
             >
               <div class="cell check" @click.stop>
                 <v-checkbox-btn
@@ -107,7 +152,7 @@ function onWeightKeydown(e) {
               <div class="cell name-wrap">
                 <p class="cell name">{{ ex.name }}</p>
                 <v-icon
-                  :icon="workout.expandedId === ex.id ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                  :icon="expandedId === ex.id ? 'mdi-chevron-up' : 'mdi-chevron-down'"
                   size="18"
                   class="chevron"
                 />
@@ -135,20 +180,20 @@ function onWeightKeydown(e) {
                     <v-list-item
                       prepend-icon="mdi-pencil-outline"
                       title="Edit"
-                      @click="workout.openEdit(ex)"
+                      @click="openEdit(ex)"
                     />
                     <v-list-item
                       prepend-icon="mdi-delete-outline"
                       title="Delete"
                       class="danger"
-                      @click="workout.deleteExercise(ex.id)"
+                      @click="deleteExercise(ex.id)"
                     />
                   </v-list>
                 </v-menu>
               </div>
             </div>
 
-            <div v-show="workout.expandedId === ex.id" class="detail">
+            <div v-show="expandedId === ex.id" class="detail">
               <p class="detail-label">Description</p>
               <p class="detail-text">
                 {{ ex.description || 'No description' }}
@@ -160,21 +205,23 @@ function onWeightKeydown(e) {
     </div>
 
     <v-dialog
-      :model-value="workout.dialog.open && workout.dialog.type === 'exercise'"
+      :model-value="dialogOpen"
       max-width="420"
-      @update:model-value="v => !v && workout.closeDialog()"
+      @update:model-value="v => !v && closeDialog()"
     >
       <v-card class="dlg-card">
-        <v-card-title class="dlg-title">{{ workout.dlgTitle }}</v-card-title>
+        <v-card-title class="dlg-title">
+          {{ dialogMode === 'edit' ? 'Edit exercise' : 'Add exercise' }}
+        </v-card-title>
         <v-card-text class="dlg-fields">
           <v-text-field
-            v-model="workout.dialog.form.name"
+            v-model="form.name"
             label="Name"
             prepend-inner-icon="mdi-arm-flex"
             rounded="lg"
           />
           <v-text-field
-            :model-value="workout.dialog.form.weight"
+            :model-value="form.weight"
             label="Weight"
             type="text"
             inputmode="decimal"
@@ -183,10 +230,10 @@ function onWeightKeydown(e) {
             rounded="lg"
             hide-details="auto"
             @keydown="onWeightKeydown"
-            @update:model-value="workout.setWeight"
+            @update:model-value="setWeight"
           />
           <v-textarea
-            v-model="workout.dialog.form.description"
+            v-model="form.description"
             label="Description"
             prepend-inner-icon="mdi-text"
             rounded="lg"
@@ -198,9 +245,9 @@ function onWeightKeydown(e) {
           />
         </v-card-text>
         <v-card-actions class="dlg-actions">
-          <v-btn variant="outlined" class="btn-ghost" @click="workout.closeDialog()">Cancel</v-btn>
-          <button class="btn-gradient" type="button" @click="workout.saveExercise()">
-            {{ workout.dialog.mode === 'edit' ? 'Update' : 'Add' }}
+          <v-btn variant="outlined" class="btn-ghost" @click="closeDialog()">Cancel</v-btn>
+          <button class="btn-gradient" type="button" @click="saveExercise()">
+            {{ dialogMode === 'edit' ? 'Update' : 'Add' }}
           </button>
         </v-card-actions>
       </v-card>

@@ -8,15 +8,7 @@ import { useConfirmStore } from './confirm.store'
 export const useWorkoutStore = defineStore('workout', {
   state: () => ({
     draft: null,
-    dialog: { open: false, type: 'exercise', mode: 'add', form: {} },
-    expandedId: null,
   }),
-
-  getters: {
-    dlgTitle(state) {
-      return state.dialog.mode === 'edit' ? 'Edit exercise' : 'Add exercise'
-    },
-  },
 
   actions: {
     clone(obj) {
@@ -29,26 +21,16 @@ export const useWorkoutStore = defineStore('workout', {
       return rest.length ? `${whole}.${rest.join('')}` : whole
     },
 
-    setWeight(value) {
-      this.dialog.form.weight = this.sanitizeWeight(value)
-    },
-
     persist() {
       if (!this.draft) return
-      const dash = useDashboardStore()
-      const i = dash.routines.findIndex(r => r.id === this.draft.id)
-      if (i >= 0) dash.routines[i] = this.clone(this.draft)
+      const ctx = useDashboardStore().findRoutineContext(this.draft.id)
+      if (ctx) ctx.split.routines[ctx.index] = this.clone(this.draft)
     },
 
     loadDraft(id) {
       const src = useDashboardStore().getById(id)
       this.draft = src ? this.clone(src) : null
-      this.expandedId = null
       return !!this.draft
-    },
-
-    toggleExpand(exId) {
-      this.expandedId = this.expandedId === exId ? null : exId
     },
 
     async toggleExercise(exId) {
@@ -62,31 +44,11 @@ export const useWorkoutStore = defineStore('workout', {
       })
     },
 
-    openDialog(mode = 'add', form = {}) {
-      this.dialog = { open: true, type: 'exercise', mode, form: { ...form } }
-    },
-
-    closeDialog() {
-      this.dialog.open = false
-    },
-
-    openAdd() {
-      this.openDialog('add', { name: '', weight: '', description: '' })
-    },
-
-    openEdit(ex) {
-      this.openDialog('edit', {
-        ...ex,
-        weight: this.sanitizeWeight(ex.weight),
-      })
-    },
-
-    async saveExercise() {
+    async saveExercise(mode, form) {
       const snack = useSnackbarStore()
-      const { mode, form } = this.dialog
-      if (!this.draft || !form.name?.trim()) {
+      if (!this.draft || !form?.name?.trim()) {
         snack.warning('Exercise name is required')
-        return
+        return false
       }
 
       const weight = this.sanitizeWeight(form.weight)
@@ -111,12 +73,12 @@ export const useWorkoutStore = defineStore('workout', {
           snack.success('Exercise added')
         }
         this.persist()
-        this.closeDialog()
       })
+      return true
     },
 
     async deleteExercise(exId) {
-      if (!this.draft) return
+      if (!this.draft) return false
       const name = this.draft.exercises.find(e => e.id === exId)?.name
 
       const ok = await useConfirmStore().ask({
@@ -126,20 +88,19 @@ export const useWorkoutStore = defineStore('workout', {
           : 'This exercise will be removed from this routine.',
         confirmLabel: 'Delete',
       })
-      if (!ok) return
+      if (!ok) return false
 
       await useLoaderStore().wrap(() => {
         this.draft.exercises = this.draft.exercises.filter(e => e.id !== exId)
-        if (this.expandedId === exId) this.expandedId = null
         this.persist()
         useSnackbarStore().success(name ? `"${name}" deleted` : 'Exercise deleted')
       })
+      return true
     },
 
     goBack() {
       this.persist()
       this.draft = null
-      this.expandedId = null
       useAppStore().goDashboard()
     },
   },

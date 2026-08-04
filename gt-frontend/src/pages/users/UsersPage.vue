@@ -33,7 +33,7 @@ onMounted(() => {
           />
           <div class="copy-field">
             <v-text-field
-              :model-value="users.generatedEmail"
+              :model-value="users.getGeneratedEmail()"
               label="Email"
               type="email"
               prepend-inner-icon="mdi-email-outline"

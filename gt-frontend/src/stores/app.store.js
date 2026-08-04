@@ -20,11 +20,11 @@ export const useAppStore = defineStore('app', {
     weightUnit: 'kg', // kg | lb
   }),
 
-  getters: {
-    isAdmin: s => s.user?.role === 'admin',
-  },
-
   actions: {
+    isAdmin() {
+      return this.user?.role === 'admin'
+    },
+
     goLogin() {
       this.router.push({ name: 'login' })
     },

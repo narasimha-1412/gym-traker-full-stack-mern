@@ -9,16 +9,13 @@ import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
-    tab: 'profile', // profile | password
     profile: { name: '', email: '', weightUnit: 'kg' },
     pw: { current: '', next: '', confirm: '' },
-    show: { current: false, next: false, confirm: false },
   }),
 
   actions: {
     resetForm() {
       this.pw = { current: '', next: '', confirm: '' }
-      this.show = { current: false, next: false, confirm: false }
     },
 
     loadProfile() {
@@ -31,24 +28,11 @@ export const useSettingsStore = defineStore('settings', {
     },
 
     async enter() {
-      this.tab = 'profile'
       this.resetForm()
       await useLoaderStore().wrap(() => {
         this.loadProfile()
         useAppStore().goSettings()
       })
-    },
-
-    setTab(name) {
-      this.tab = name
-    },
-
-    eye(key) {
-      return this.show[key] ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
-    },
-
-    toggleShow(key) {
-      this.show[key] = !this.show[key]
     },
 
     async saveProfile() {
@@ -111,7 +95,7 @@ export const useSettingsStore = defineStore('settings', {
         return
       }
 
-      await useLoaderStore().wrap(async () => {
+      return await useLoaderStore().wrap(async () => {
         try {
           const data = getData(
             await changePasswordRequest({
@@ -122,8 +106,10 @@ export const useSettingsStore = defineStore('settings', {
           useAppStore().setAccessToken(data.accessToken)
           this.resetForm()
           snack.success('Password updated')
+          return true
         } catch (err) {
           snack.error(apiMessage(err, 'Could not update password'))
+          return false
         }
       })
     },
@@ -138,7 +124,6 @@ export const useSettingsStore = defineStore('settings', {
 
       await useLoaderStore().wrap(async () => {
         this.resetForm()
-        this.tab = 'profile'
         useLoginStore().reset()
         await useAppStore().logout()
         useSnackbarStore().info('Logged out')

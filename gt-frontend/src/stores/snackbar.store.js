@@ -15,11 +15,11 @@ export const useSnackbarStore = defineStore('snackbar', {
     timeout: 3200,
   }),
 
-  getters: {
-    icon: state => ICONS[state.type] || ICONS.info,
-  },
-
   actions: {
+    getIcon() {
+      return ICONS[this.type] || ICONS.info
+    },
+
     show(msg, t = 'info', ms = 3200) {
       this.message = msg
       this.type = t
