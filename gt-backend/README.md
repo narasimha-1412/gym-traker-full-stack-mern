@@ -87,7 +87,7 @@ Never commit `.env`.
 
 ### README
 
-**Update this file whenever the project structure changes** (new route, model, middleware, or folder rename).
+**When needed, make sure to update this file** — project structure, env vars, conventions, or feature notes whenever those change (new/removed route, model, middleware, or folder rename).
 
 ## Project structure
 

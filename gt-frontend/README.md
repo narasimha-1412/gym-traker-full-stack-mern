@@ -97,7 +97,7 @@ Always: `script` → `template` → `styles`
 
 ### README
 
-**Update this file whenever the project structure changes** (new page, store, shared component, or folder rename).
+**When needed, make sure to update this file** — project structure, routes, page ↔ store map, or feature notes whenever those change (new/removed page, store, component, or folder rename).
 
 ## Project structure
 

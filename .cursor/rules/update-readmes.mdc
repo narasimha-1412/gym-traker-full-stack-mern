@@ -1,0 +1,22 @@
+---
+description: Keep gt-frontend and gt-backend README.md in sync with project changes
+alwaysApply: true
+---
+
+# Update package READMEs
+
+When changing structure or documented behavior in `gt-frontend` or `gt-backend`, update that package’s `README.md` in the same task.
+
+## When to update
+
+- New, removed, or renamed pages, stores, routes, models, middleware, or folders
+- Auth / users / feature behavior that Feature notes describe
+- Env vars, scripts, or conventions sections that become wrong
+
+## What to keep accurate
+
+- Project structure tree
+- Routes / page ↔ store map (frontend) or layer conventions (backend)
+- Feature notes
+
+Do not leave README stale after structural or feature work. If nothing documented changed, skip the README edit.
