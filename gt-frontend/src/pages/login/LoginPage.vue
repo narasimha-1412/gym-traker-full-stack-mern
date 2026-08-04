@@ -48,10 +48,6 @@ const login = useLoginStore()
         Log In
         <v-icon icon="mdi-arrow-right" size="18" class="btn-icon" />
       </button>
-
-      <p class="signup">
-        Don't have an account? <a href="#" @click.prevent="login.goSignup()">Sign up</a>
-      </p>
     </v-card>
   </div>
 </template>
@@ -231,19 +227,6 @@ const login = useLoginStore()
 
 .btn-icon {
   transition: transform 0.2s ease;
-}
-
-.signup {
-  margin: 18px 0 0;
-  text-align: center;
-  font-size: 0.85rem;
-  color: $muted;
-
-  a {
-    color: $blue;
-    text-decoration: none;
-    font-weight: 600;
-  }
 }
 
 :deep(.v-field) {

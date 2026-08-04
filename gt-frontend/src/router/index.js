@@ -1,13 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAppStore } from '@/stores/app.store'
+import { useUsersStore } from '@/stores/users.store'
 
 import LoginPage from '@/pages/login/LoginPage.vue'
-import SignupPage from '@/pages/signup/SignupPage.vue'
 import ForgotPage from '@/pages/forgot/ForgotPage.vue'
 import ResetPage from '@/pages/reset/ResetPage.vue'
 import DashboardPage from '@/pages/dashboard/DashboardPage.vue'
 import WorkoutPage from '@/pages/workout/WorkoutPage.vue'
 import SettingsPage from '@/pages/settings/SettingsPage.vue'
+import UsersPage from '@/pages/users/UsersPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,12 +17,6 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginPage,
-      meta: { guest: true },
-    },
-    {
-      path: '/signup',
-      name: 'signup',
-      component: SignupPage,
       meta: { guest: true },
     },
     {
@@ -53,6 +48,12 @@ const router = createRouter({
       meta: { auth: true },
     },
     {
+      path: '/users',
+      name: 'users',
+      component: UsersPage,
+      meta: { auth: true, admin: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },
@@ -62,11 +63,24 @@ const router = createRouter({
 router.beforeEach(to => {
   const app = useAppStore()
 
+  if (app.loggedIn) {
+    const me = useUsersStore().findByEmail(app.user.email)
+    if (me?.status === 'disabled') {
+      app.loggedIn = false
+      app.user.role = 'user'
+      if (to.name !== 'login') return { name: 'login' }
+    }
+  }
+
   if (to.meta.auth && !app.loggedIn) {
     return { name: 'login' }
   }
 
   if (to.meta.guest && app.loggedIn) {
+    return { name: 'dashboard' }
+  }
+
+  if (to.meta.admin && !app.isAdmin) {
     return { name: 'dashboard' }
   }
 

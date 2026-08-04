@@ -27,6 +27,16 @@ const settings = useSettingsStore()
           </template>
         </v-tooltip>
         <v-btn
+          v-if="app.isAdmin"
+          icon
+          variant="text"
+          size="small"
+          aria-label="Users"
+          @click="app.goUsers()"
+        >
+          <v-icon icon="mdi-account-multiple-outline" />
+        </v-btn>
+        <v-btn
           icon
           variant="text"
           size="small"

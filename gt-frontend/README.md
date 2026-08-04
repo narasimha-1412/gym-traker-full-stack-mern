@@ -61,7 +61,8 @@ Vite is configured with `server.host: true` so the container is reachable at `ht
 ### Routing
 
 - Router: `src/router/index.js` (history mode)
-- Auth routes require `app.loggedIn`; guest routes (`/login`, `/signup`) redirect when already logged in
+- Auth routes require `app.loggedIn`; guest routes (`/login`) redirect when already logged in
+- Admin routes (`/users`) require `app.isAdmin`
 - `/forgot` and `/reset/:token` stay public (email-link friendly)
 - Navigate via `app.goLogin()`, `app.goDashboard()`, `app.openWorkout(id)`, etc. (or `router.push`)
 
@@ -125,17 +126,15 @@ gt-frontend/
     │   ├── loader.store.js
     │   ├── confirm.store.js
     │   ├── login.store.js
-    │   ├── signup.store.js
     │   ├── forgot.store.js
     │   ├── reset.store.js
     │   ├── dashboard.store.js
     │   ├── workout.store.js
-    │   └── settings.store.js
+    │   ├── settings.store.js
+    │   └── users.store.js
     ├── pages/
     │   ├── login/
     │   │   └── LoginPage.vue
-    │   ├── signup/
-    │   │   └── SignupPage.vue
     │   ├── forgot/
     │   │   └── ForgotPage.vue
     │   ├── reset/
@@ -146,8 +145,10 @@ gt-frontend/
     │   │   └── RoutineCard.vue
     │   ├── workout/
     │   │   └── WorkoutPage.vue
-    │   └── settings/
-    │       └── SettingsPage.vue
+    │   ├── settings/
+    │   │   └── SettingsPage.vue
+    │   └── users/
+    │       └── UsersPage.vue
     └── components/
         ├── AppSnackbar.vue
         ├── AppLoader.vue
@@ -156,15 +157,15 @@ gt-frontend/
 
 ## Routes
 
-| Path                  | Name        | Page            | Access |
-| --------------------- | ----------- | --------------- | ------ |
-| `/login`              | `login`     | `LoginPage`     | Guest  |
-| `/signup`             | `signup`    | `SignupPage`    | Guest  |
-| `/forgot`             | `forgot`    | `ForgotPage`    | Public |
-| `/reset/:token`       | `reset`     | `ResetPage`     | Public |
-| `/`                   | `dashboard` | `DashboardPage` | Auth   |
-| `/workout/:routineId` | `workout`   | `WorkoutPage`   | Auth   |
-| `/settings`           | `settings`  | `SettingsPage`  | Auth   |
+| Path                  | Name        | Page            | Access      |
+| --------------------- | ----------- | --------------- | ----------- |
+| `/login`              | `login`     | `LoginPage`     | Guest       |
+| `/forgot`             | `forgot`    | `ForgotPage`    | Public      |
+| `/reset/:token`       | `reset`     | `ResetPage`     | Public      |
+| `/`                   | `dashboard` | `DashboardPage` | Auth        |
+| `/workout/:routineId` | `workout`   | `WorkoutPage`   | Auth        |
+| `/settings`           | `settings`  | `SettingsPage`  | Auth        |
+| `/users`              | `users`     | `UsersPage`     | Auth+Admin  |
 
 Unknown paths redirect to `/`.
 
@@ -173,12 +174,12 @@ Unknown paths redirect to `/`.
 | Page                      | Store                |
 | ------------------------- | -------------------- |
 | `pages/login`             | `login.store.js`     |
-| `pages/signup`            | `signup.store.js`    |
 | `pages/forgot`            | `forgot.store.js`    |
 | `pages/reset`             | `reset.store.js`     |
 | `pages/dashboard`         | `dashboard.store.js` |
 | `pages/workout`           | `workout.store.js`   |
 | `pages/settings`          | `settings.store.js`  |
+| `pages/users`             | `users.store.js`     |
 | App shell / session / nav | `app.store.js`       |
 | Global toasts             | `snackbar.store.js`  |
 | Global loader             | `loader.store.js`    |
@@ -186,7 +187,8 @@ Unknown paths redirect to `/`.
 
 ## Feature notes
 
-- **Auth**: login, signup, forgot (email + confirmation + resend), reset password via `/reset/:token`
+- **Auth**: login only (admin creates users); forgot (email + confirmation + resend), reset password via `/reset/:token`
+- **Users** (`/users`, admin): list users, create with default password `IronLog123`, copy email, enable/disable (disabled users cannot log in)
 - **Dashboard** (`/`): routines list, progress ring, add / rename / delete routine, reset progress
 - **Workout**: exercises CRUD, mark done, weight unit from settings
 - **Settings**: profile (username, kg/lb), change password, log out
