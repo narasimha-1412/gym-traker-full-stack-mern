@@ -169,17 +169,33 @@ gt-backend/
     │   ├── env.js
     │   └── db.js
     ├── models/
-    │   └── User.js
+    │   ├── User.js
+    │   ├── Split.js
+    │   ├── Workout.js
+    │   ├── Exercise.js
+    │   └── AppConfig.js
     ├── controllers/
     │   ├── auth.controller.js
-    │   └── users.controller.js
+    │   ├── users.controller.js
+    │   ├── splits.controller.js
+    │   ├── workouts.controller.js
+    │   ├── exercises.controller.js
+    │   └── configs.controller.js
     ├── validators/
     │   ├── auth.validators.js
-    │   └── users.validators.js
+    │   ├── users.validators.js
+    │   ├── splits.validators.js
+    │   ├── workouts.validators.js
+    │   ├── exercises.validators.js
+    │   └── configs.validators.js
     ├── routes/
     │   ├── index.js
     │   ├── auth.routes.js
-    │   └── users.routes.js
+    │   ├── users.routes.js
+    │   ├── splits.routes.js
+    │   ├── workouts.routes.js
+    │   ├── exercises.routes.js
+    │   └── configs.routes.js
     ├── utils/
     │   ├── tokens.js
     │   ├── cookies.js
@@ -208,6 +224,22 @@ gt-backend/
 | `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
 | `PATCH` | `/api/users/:id/status` | Admin | `{ user }` |
 | `POST` | `/api/users/:id/reset-password` | Admin | `{ message }` |
+| `GET` | `/api/splits` | Auth | `{ splits: [{ …, workoutCount }] }` |
+| `POST` | `/api/splits` | Auth | `{ split, activeSplitId }` — body `{ title }`; enforces max splits; first split becomes active |
+| `PATCH` | `/api/splits/:id` | Auth | `{ split }` — body `{ title }` |
+| `DELETE` | `/api/splits/:id` | Auth | `{ activeSplitId }` — cascades workouts/exercises; reassigns active if needed |
+| `POST` | `/api/splits/:id/activate` | Auth | `{ activeSplitId, split }` |
+| `GET` | `/api/splits/:splitId/workouts` | Auth | `{ workouts: [{ …, exerciseCount }] }` |
+| `POST` | `/api/splits/:splitId/workouts` | Auth | `{ workout }` — body `{ title }`; enforces max workouts per split |
+| `POST` | `/api/splits/:splitId/workouts/reset` | Auth | `null` — unmarks all workouts in split |
+| `PATCH` | `/api/workouts/:id` | Auth | `{ workout }` — body `{ title?`, `done? }` |
+| `DELETE` | `/api/workouts/:id` | Auth | `null` — cascades exercises |
+| `GET` | `/api/workouts/:workoutId/exercises` | Auth | `{ exercises: [...] }` |
+| `POST` | `/api/workouts/:workoutId/exercises` | Auth | `{ exercise }` — body `{ name, weight?, description? }`; enforces max exercises per workout |
+| `PATCH` | `/api/exercises/:id` | Auth | `{ exercise }` — body `{ name?`, `weight?`, `description?`, `done? }` |
+| `DELETE` | `/api/exercises/:id` | Auth | `null` |
+| `GET` | `/api/configs` | Auth | `{ config }` — global create limits |
+| `PATCH` | `/api/configs` | Admin | `{ config }` — body `{ maxSplits, maxWorkoutsPerSplit, maxExercisesPerWorkout }` (1–100) |
 
 ## Feature notes
 
@@ -216,11 +248,11 @@ gt-backend/
 - **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'strict'`
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack (5xx)
 - **Auth**: Access JWT (default **15m**, Bearer); refresh JWT in `httpOnly` cookie `refreshToken` (default **7d**, path `/api/auth`). **Single session per user** via `User.sessionId` (`sid` in both tokens): new login replaces `sessionId` and invalidates other devices; logout sets `sessionId` to `null`; `requireAuth` and refresh both check `sid`
-- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; `weightUnit` `kg` \| `lb`; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
+- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; `weightUnit` `kg` \| `lb`; `activeSplitId` (ObjectId \| null) — user’s current training split; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client)
 - **Profile**: `PATCH /api/auth/me` updates own `name` + `weightUnit` only
 - **Password**: `POST /api/auth/password` requires current password; min 8 chars; rotates `sessionId` and returns new access + refresh cookie (other devices signed out)
+- **Training models** (Split → Workout → Exercise): **Splits**, **Workouts**, and **Exercises** APIs implemented. `User.activeSplitId` refs `Split`. `AppConfig` singleton holds global create limits (`maxSplits`, `maxWorkoutsPerSplit`, `maxExercisesPerWorkout`; default 20 each, range 1–100); ensured on server boot via `AppConfig.ensureDefaults()`. **Configs API**: `GET /api/configs` (any auth user), `PATCH /api/configs` (admin). Creates enforce limits; deletes cascade children; delete split reassigns `activeSplitId`
 - **Validation**: Zod on login / list / create / profile / password / `:id` params; unknown body keys rejected
 - **Rate limits**: login 20/15min; change password 10/15min; users list 60/min (per IP)
 - **HTTP hardening**: Helmet security headers; JSON body max `32kb` (413 if larger); prod 500s return generic message only
-- **Seed**: `npm run seed:admin` → `alex@rivera.com` / `IronLog123` (admin)
-- **Workouts**: not implemented yet
+- **Seed**: `npm run seed:admin` → admin user (see `seedAdmin.js`)
