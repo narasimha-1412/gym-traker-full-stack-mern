@@ -338,7 +338,7 @@ export const useDashboardStore = defineStore('dashboard', {
 
       const ok = await useConfirmStore().ask({
         title: 'Reset progress?',
-        message: `All completed workouts in "${split.title}" will be unmarked.`,
+        message: `All completed workouts and exercises in "${split.title}" will be unmarked.`,
         confirmLabel: 'Reset',
       })
       if (!ok) return
@@ -349,7 +349,7 @@ export const useDashboardStore = defineStore('dashboard', {
           this.workouts.forEach(w => {
             w.done = false
           })
-          snack.success('Workout progress reset')
+          snack.success('Progress reset')
         } catch (err) {
           snack.error(apiMessage(err, 'Could not reset progress'))
         }

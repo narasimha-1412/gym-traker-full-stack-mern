@@ -7,7 +7,53 @@ import { useLoaderStore } from './loader.store'
 import { useConfirmStore } from './confirm.store'
 import { updateProfile, changePassword as changePasswordRequest } from '@/networks/auth.services'
 import { getConfig, updateConfig } from '@/networks/configs.services'
+import { bulkImportSplits } from '@/networks/splits.services'
 import { getData, apiMessage } from '@/networks/base/envelope'
+
+export const BULK_IMPORT_PROMPT = `You convert a gym training plan into JSON for IronLog.
+
+OUTPUT RULES:
+- Reply with ONLY valid JSON. No markdown, no commentary.
+- Use EXACTLY this shape and these property names (no extras):
+
+{
+  "splits": [
+    {
+      "title": "string",
+      "workouts": [
+        {
+          "title": "string",
+          "exercises": [
+            {
+              "name": "string",
+              "weight": "string",
+              "weightUnit": "kg" | "lb",
+              "description": "string"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+FIELD RULES:
+- title, name: required, 1–80 characters
+- weight: string only (e.g. "60" or "60.5" or ""). Never a number type.
+- weightUnit: MUST be exactly "kg" or "lb". Nothing else (not "lbs", "KG", "pounds").
+- description: optional notes/sets/reps as one string, max 500 chars, or ""
+- Do NOT include: id, done, userId, splitId, workoutId, dates, sets[], reps as separate fields
+- Do NOT invent splits/workouts/exercises that are not in the user's text
+- If weight unit is unclear, use "kg"
+- If weight is missing, use ""
+- Empty workouts arrays are allowed
+- Group days under one split when the user describes one program
+- Split titles must be unique in the JSON and must not match an existing split
+- Workout and exercise names may repeat
+- Prefer one split object per program; put all training days under its workouts array
+
+USER PLAN:
+<<<paste your training notes here>>>`
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
@@ -18,6 +64,7 @@ export const useSettingsStore = defineStore('settings', {
       maxWorkoutsPerSplit: 20,
       maxExercisesPerWorkout: 20,
     },
+    bulkJson: '',
   }),
 
   actions: {
@@ -180,6 +227,48 @@ export const useSettingsStore = defineStore('settings', {
         useDashboardStore().clear()
         await useAppStore().logout()
         useSnackbarStore().info('Logged out')
+      })
+    },
+
+    async copyBulkPrompt() {
+      const snack = useSnackbarStore()
+      try {
+        await navigator.clipboard.writeText(BULK_IMPORT_PROMPT)
+        snack.success('Prompt copied')
+      } catch {
+        snack.error('Could not copy prompt')
+      }
+    },
+
+    async submitBulkImport() {
+      const snack = useSnackbarStore()
+      const raw = this.bulkJson.trim()
+      if (!raw) {
+        snack.warning('Paste JSON first')
+        return false
+      }
+
+      let body
+      try {
+        body = JSON.parse(raw)
+      } catch {
+        snack.warning('Invalid JSON')
+        return false
+      }
+
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await bulkImportSplits(body))
+          const c = data.created || {}
+          this.bulkJson = ''
+          snack.success(
+            `Added ${c.splits || 0} splits, ${c.workouts || 0} workouts, ${c.exercises || 0} exercises`
+          )
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not import plan'))
+          return false
+        }
       })
     },
   },

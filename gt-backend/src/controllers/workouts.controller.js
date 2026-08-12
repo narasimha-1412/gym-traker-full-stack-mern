@@ -94,7 +94,12 @@ export async function resetWorkouts(req, res, next) {
     const split = await findOwnedSplit(req.params.splitId, userId)
     if (!split) return sendFail(res, 'Split not found', 404)
 
+    const workouts = await Workout.find({ splitId: split._id, userId }).select('_id')
+    const workoutIds = workouts.map(w => w._id)
     await Workout.updateMany({ splitId: split._id, userId }, { done: false })
+    if (workoutIds.length) {
+      await Exercise.updateMany({ workoutId: { $in: workoutIds }, userId }, { done: false })
+    }
     sendSuccess(res, null)
   } catch (err) {
     next(err)

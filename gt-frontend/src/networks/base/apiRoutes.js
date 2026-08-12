@@ -19,6 +19,7 @@ export const routes = {
   splits: {
     list: '/api/splits',
     create: '/api/splits',
+    bulk: '/api/splits/bulk',
     one: id => `/api/splits/${id}`,
     activate: id => `/api/splits/${id}/activate`,
   },

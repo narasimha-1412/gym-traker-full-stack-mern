@@ -8,10 +8,13 @@ const settings = useSettingsStore()
 
 const tab = ref('profile')
 const show = ref({ current: false, next: false, confirm: false })
+const bulkOpen = ref(false)
 
 onMounted(() => {
   tab.value = 'profile'
   show.value = { current: false, next: false, confirm: false }
+  bulkOpen.value = false
+  settings.bulkJson = ''
   settings.loadProfile()
   if (app.isAdmin()) settings.loadConfigs()
 })
@@ -33,6 +36,20 @@ async function updatePassword() {
 function setConfigField(key, value) {
   const cleaned = String(value ?? '').replace(/\D/g, '')
   settings.configs[key] = cleaned === '' ? '' : Number(cleaned)
+}
+
+function openBulk() {
+  settings.bulkJson = ''
+  bulkOpen.value = true
+}
+
+function closeBulk() {
+  bulkOpen.value = false
+  settings.bulkJson = ''
+}
+
+async function submitBulk() {
+  if (await settings.submitBulkImport()) closeBulk()
 }
 </script>
 
@@ -108,6 +125,10 @@ function setConfigField(key, value) {
         <button class="btn-gradient" type="button" @click="settings.saveProfile()">
           Save profile
         </button>
+
+        <p class="section bulk-section">Plan import</p>
+        <p class="hint">Bulk-add splits, workouts, and exercises from JSON.</p>
+        <button class="btn-outline" type="button" @click="openBulk()">Bulk add splits</button>
       </div>
 
       <div v-else-if="tab === 'password'" class="panel">
@@ -152,7 +173,9 @@ function setConfigField(key, value) {
 
       <div v-else-if="tab === 'configs' && app.isAdmin()" class="panel">
         <p class="section">Configs</p>
-        <p class="hint">Applies to all users. Existing items over a lower limit are kept; new ones are blocked.</p>
+        <p class="hint">
+          Applies to all users. Existing items over a lower limit are kept; new ones are blocked.
+        </p>
         <div class="fields">
           <v-text-field
             :model-value="settings.configs.maxSplits"
@@ -197,6 +220,48 @@ function setConfigField(key, value) {
         </button>
       </div>
     </div>
+
+    <v-dialog
+      :model-value="bulkOpen"
+      max-width="480"
+      content-class="dlg"
+      @update:model-value="v => !v && closeBulk()"
+    >
+      <v-card class="dlg-card">
+        <v-card-title class="dlg-title">Bulk add splits</v-card-title>
+        <v-card-text class="dlg-body">
+          <ol class="steps">
+            <li>Copy the example prompt and paste it into any AI chat.</li>
+            <li>Replace the notes section with your plan; ask the AI for JSON only.</li>
+            <li>Paste that JSON below and submit.</li>
+          </ol>
+          <p class="hint">
+            Split names must be new (case-insensitive). Matching an existing split rejects the whole
+            import. Workouts and exercises are created under each new split (duplicate names allowed).
+            If any limit would be exceeded, nothing is imported. Active split is not changed.
+          </p>
+          <button class="btn-outline" type="button" @click="settings.copyBulkPrompt()">
+            Copy example prompt
+          </button>
+          <v-textarea
+            v-model="settings.bulkJson"
+            class="bulk-json"
+            label="Paste JSON"
+            variant="outlined"
+            rows="8"
+            no-resize
+            rounded="lg"
+            hide-details="auto"
+          />
+        </v-card-text>
+        <v-card-actions class="dlg-actions">
+          <v-btn variant="outlined" class="btn-ghost" @click="closeBulk()">Cancel</v-btn>
+          <button class="btn-gradient btn-submit" type="button" @click="submitBulk()">
+            Submit
+          </button>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -325,6 +390,10 @@ function setConfigField(key, value) {
   color: $text;
 }
 
+.bulk-section {
+  margin-top: 22px;
+}
+
 .hint {
   margin: -6px 0 14px;
   font-size: 0.82rem;
@@ -351,6 +420,82 @@ function setConfigField(key, value) {
   &:hover {
     filter: brightness(1.08);
   }
+}
+
+.btn-outline {
+  width: 100%;
+  height: 44px;
+  border: 1px solid $stroke;
+  border-radius: $radius-btn;
+  background: $surface-2;
+  color: $text;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    filter 0.15s,
+    transform 0.15s;
+  &:active {
+    transform: scale(0.98);
+  }
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.btn-submit {
+  width: auto;
+  min-width: 110px;
+  padding: 0 18px;
+}
+
+.dlg-card {
+  background: $surface !important;
+  color: $text;
+}
+
+.dlg-title {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.dlg-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: $text;
+
+  li + li {
+    margin-top: 4px;
+  }
+}
+
+.bulk-json {
+  margin-top: 4px;
+
+  :deep(textarea.v-field__input) {
+    max-height: 180px !important;
+    height: 180px !important;
+    overflow-y: auto !important;
+    resize: none;
+  }
+}
+
+.dlg-actions {
+  padding: 8px 16px 16px !important;
+  gap: 8px;
+}
+
+.btn-ghost {
+  border-color: $stroke !important;
+  color: $text !important;
 }
 
 :deep(.v-field) {

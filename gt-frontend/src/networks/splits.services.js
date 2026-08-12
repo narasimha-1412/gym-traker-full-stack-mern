@@ -10,3 +10,5 @@ export const renameSplit = (id, body) => patchAPIResponse(routes.splits.one(id),
 export const deleteSplit = id => deleteAPIResponse(routes.splits.one(id))
 
 export const activateSplit = id => postAPIResponse(routes.splits.activate(id))
+
+export const bulkImportSplits = body => postAPIResponse(routes.splits.bulk, body)
