@@ -1,5 +1,8 @@
 import bcrypt from 'bcryptjs'
 import { User } from '../models/User.js'
+import { Split } from '../models/Split.js'
+import { Workout } from '../models/Workout.js'
+import { Exercise } from '../models/Exercise.js'
 import { sendSuccess, sendFail } from '../utils/apiResponse.js'
 
 export const DEFAULT_PASSWORD = 'IronLog123'
@@ -83,6 +86,31 @@ export async function resetPassword(req, res, next) {
     await user.save()
 
     sendSuccess(res, { message: 'Password reset successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const user = await User.findById(req.params.id)
+    if (!user) {
+      return sendFail(res, 'User not found', 404)
+    }
+    if (user.role === 'admin') {
+      return sendFail(res, 'Cannot delete an admin account', 400)
+    }
+    if (user._id.toString() === req.user.id) {
+      return sendFail(res, 'You cannot delete your own account', 400)
+    }
+
+    const userId = user._id
+    await Exercise.deleteMany({ userId })
+    await Workout.deleteMany({ userId })
+    await Split.deleteMany({ userId })
+    await user.deleteOne()
+
+    sendSuccess(res, null)
   } catch (err) {
     next(err)
   }

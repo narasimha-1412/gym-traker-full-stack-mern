@@ -7,8 +7,10 @@ import {
   createUser,
   toggleStatus as toggleStatusRequest,
   resetPassword as resetPasswordRequest,
+  deleteUser as deleteUserRequest,
 } from '@/networks/users.services'
 import { getData, apiMessage } from '@/networks/base/envelope'
+import { useConfirmStore } from './confirm.store'
 
 export const DEFAULT_PASSWORD = 'IronLog123'
 export const EMAIL_DOMAIN = 'ironlog.com'
@@ -142,6 +144,34 @@ export const useUsersStore = defineStore('users', {
           snack.success('Password reset successfully')
         } catch (err) {
           snack.error(apiMessage(err, 'Could not reset password'))
+        }
+      })
+    },
+
+    async deleteUser(id) {
+      const snack = useSnackbarStore()
+      const user = this.list.find(u => u.id === id)
+      if (!user || user.role === 'admin') return
+
+      if (user.email === useAppStore().user.email) {
+        snack.warning('You cannot delete your own account')
+        return
+      }
+
+      const ok = await useConfirmStore().ask({
+        title: 'Delete user?',
+        message: `"${user.name}" and all their training data will be permanently removed.`,
+        confirmLabel: 'Delete',
+      })
+      if (!ok) return
+
+      await useLoaderStore().wrap(async () => {
+        try {
+          getData(await deleteUserRequest(id))
+          this.list = this.list.filter(u => u.id !== id)
+          snack.success(`"${user.name}" deleted`)
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not delete user'))
         }
       })
     },

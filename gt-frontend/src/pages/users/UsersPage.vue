@@ -150,6 +150,12 @@ onMounted(() => {
                   :prepend-icon="u.status === 'active' ? 'mdi-account-off' : 'mdi-account-check'"
                   @click="users.toggleStatus(u.id)"
                 />
+                <v-list-item
+                  v-if="u.role !== 'admin'"
+                  title="Delete"
+                  prepend-icon="mdi-delete-outline"
+                  @click="users.deleteUser(u.id)"
+                />
               </v-list>
             </v-menu>
           </li>

@@ -11,6 +11,7 @@ export const routes = {
     create: '/api/users',
     status: id => `/api/users/${id}/status`,
     resetPassword: id => `/api/users/${id}/reset-password`,
+    one: id => `/api/users/${id}`,
   },
   configs: {
     root: '/api/configs',
