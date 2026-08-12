@@ -16,7 +16,7 @@ const showPassword = ref(false)
         <div class="mark">
           <v-icon icon="mdi-dumbbell" size="28" class="mark-icon" />
         </div>
-        <h1 class="wordmark">IRON<span>LOG</span></h1>
+        <h1 class="wordmark">Gym<span>Trakio</span></h1>
       </div>
 
       <p class="heading">Welcome back</p>

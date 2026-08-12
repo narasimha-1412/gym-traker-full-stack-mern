@@ -12,8 +12,8 @@ import {
 import { getData, apiMessage } from '@/networks/base/envelope'
 import { useConfirmStore } from './confirm.store'
 
-export const DEFAULT_PASSWORD = 'IronLog123'
-export const EMAIL_DOMAIN = 'ironlog.com'
+export const DEFAULT_PASSWORD = 'GymTrakio123'
+export const EMAIL_DOMAIN = 'gymtrakio.com'
 
 const SEARCH_DEBOUNCE_MS = 300
 

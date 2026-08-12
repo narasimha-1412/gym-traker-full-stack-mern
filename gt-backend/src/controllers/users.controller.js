@@ -5,7 +5,7 @@ import { Workout } from '../models/Workout.js'
 import { Exercise } from '../models/Exercise.js'
 import { sendSuccess, sendFail } from '../utils/apiResponse.js'
 
-export const DEFAULT_PASSWORD = 'IronLog123'
+export const DEFAULT_PASSWORD = 'GymTrakio123'
 
 export async function listUsers(req, res, next) {
   try {

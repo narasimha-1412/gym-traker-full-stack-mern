@@ -10,7 +10,7 @@ import { getConfig, updateConfig } from '@/networks/configs.services'
 import { bulkImportSplits } from '@/networks/splits.services'
 import { getData, apiMessage } from '@/networks/base/envelope'
 
-export const BULK_IMPORT_PROMPT = `You convert a gym training plan into JSON for IronLog.
+export const BULK_IMPORT_PROMPT = `You convert a gym training plan into JSON for GymTrakio.
 
 OUTPUT RULES:
 - Reply with ONLY valid JSON. No markdown, no commentary.

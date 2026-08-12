@@ -5,9 +5,9 @@ import { aliases, mdi } from 'vuetify/iconsets/mdi'
 
 export default createVuetify({
   theme: {
-    defaultTheme: 'ironDark',
+    defaultTheme: 'gymTrakioDark',
     themes: {
-      ironDark: {
+      gymTrakioDark: {
         dark: true,
         colors: {
           background: '#0a0c11',

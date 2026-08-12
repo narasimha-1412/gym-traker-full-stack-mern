@@ -100,7 +100,7 @@ async function selectSplit(id) {
         <div class="mark">
           <v-icon icon="mdi-dumbbell" size="18" />
         </div>
-        <span class="wordmark">IRON<span>LOG</span></span>
+        <span class="wordmark">Gym<span>Trakio</span></span>
       </div>
       <v-spacer />
       <div class="user-block">

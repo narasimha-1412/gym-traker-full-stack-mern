@@ -3,7 +3,7 @@ import { connectDB } from '../config/db.js'
 import { User } from '../models/User.js'
 import { DEFAULT_PASSWORD } from '../controllers/users.controller.js'
 
-const ADMIN_EMAIL = 'narasimha@ironlogad.com'
+const ADMIN_EMAIL = 'narasimha@gymtrakio.com'
 const ADMIN_NAME = 'Narasimha'
 
 async function seedAdmin() {

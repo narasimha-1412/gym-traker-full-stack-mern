@@ -1,6 +1,6 @@
-# IronLog — Gym Tracker Backend
+# GymTrakio — Gym Tracker Backend
 
-Node + Express + MongoDB Atlas API for IronLog.
+Node + Express + MongoDB Atlas API for GymTrakio.
 
 Boots Express, connects to MongoDB Atlas, and exposes auth + users APIs (JWT access token + httpOnly refresh cookie).
 
@@ -221,7 +221,7 @@ gt-backend/
 | `PATCH` | `/api/auth/me` | Bearer access | `{ user }` — body `{ name }` |
 | `POST` | `/api/auth/password` | Bearer access | `{ accessToken }` — body `{ currentPassword, newPassword }`; rotates session |
 | `POST` | `/api/users/list` | Admin | `{ users: [...] }` — body `{ search }` (empty = all; matches name/email) |
-| `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
+| `POST` | `/api/users` | Admin | `{ user }` (default password `GymTrakio123`) |
 | `PATCH` | `/api/users/:id/status` | Admin | `{ user }` |
 | `POST` | `/api/users/:id/reset-password` | Admin | `{ message }` |
 | `DELETE` | `/api/users/:id` | Admin | `null` (cascades splits/workouts/exercises; cannot delete admin or self) |
