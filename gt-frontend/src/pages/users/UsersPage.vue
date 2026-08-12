@@ -167,7 +167,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .users {
-  min-height: 100dvh;
   background: $bg;
 }
 

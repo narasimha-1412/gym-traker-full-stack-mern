@@ -237,8 +237,9 @@ async function submitBulk() {
           </ol>
           <p class="hint">
             Split names must be new (case-insensitive). Matching an existing split rejects the whole
-            import. Workouts and exercises are created under each new split (duplicate names allowed).
-            If any limit would be exceeded, nothing is imported. Active split is not changed.
+            import. Workouts and exercises are created under each new split (duplicate names
+            allowed). If any limit would be exceeded, nothing is imported. Active split is not
+            changed.
           </p>
           <button class="btn-outline" type="button" @click="settings.copyBulkPrompt()">
             Copy example prompt
@@ -267,7 +268,6 @@ async function submitBulk() {
 
 <style scoped lang="scss">
 .settings {
-  min-height: 100dvh;
   background: $bg;
 }
 

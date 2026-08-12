@@ -64,7 +64,7 @@ async function saveExercise() {
 }
 
 async function deleteExercise(exId) {
-  if (await workout.deleteExercise(exId) && expandedId.value === exId) {
+  if ((await workout.deleteExercise(exId)) && expandedId.value === exId) {
     expandedId.value = null
   }
 }
@@ -276,9 +276,7 @@ function onWeightKeydown(e) {
 
 <style scoped lang="scss">
 .workout {
-  min-height: 100dvh;
   background: $bg;
-  padding-bottom: 24px;
   display: flex;
   flex-direction: column;
 }
@@ -303,7 +301,7 @@ function onWeightKeydown(e) {
 
 .content {
   flex: 1;
-  padding: 12px 16px 88px;
+  padding: 12px 16px;
   max-width: 900px;
   width: 100%;
   margin: 0 auto;

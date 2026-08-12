@@ -53,7 +53,6 @@ const showPassword = ref(false)
 
 <style scoped lang="scss">
 .login-view {
-  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 24px 16px;

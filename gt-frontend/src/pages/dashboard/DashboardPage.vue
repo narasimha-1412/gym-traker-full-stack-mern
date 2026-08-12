@@ -136,11 +136,15 @@ async function selectSplit(id) {
       <div class="progress-panel">
         <ProgressRing :percent="dash.getProgress().percent" :size="76" />
         <div class="progress-meta">
-          <p class="panel-label">Workout progress</p>
+          <p class="panel-label">
+            Workout progress
+            <!-- for -->
+            <!-- <span v-if="dash.getActiveSplit()" class="split-name">{{
+              dash.getActiveSplit()?.title
+            }}</span> -->
+          </p>
           <p class="panel-text">
             <template v-if="dash.getActiveSplit()">
-              <span class="split-name">{{ dash.getActiveSplit().title }}</span>
-              ·
               <span class="mono">{{ dash.getProgress().done }}</span> of
               <span class="mono">{{ dash.getProgress().total }}</span> workouts completed
             </template>
@@ -275,9 +279,7 @@ async function selectSplit(id) {
 
 <style scoped lang="scss">
 .dashboard {
-  min-height: 100dvh;
   background: $bg;
-  padding-bottom: 96px;
 }
 
 .bar {
@@ -393,6 +395,8 @@ async function selectSplit(id) {
 
 .split-name {
   color: $blue;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .mono {
