@@ -13,7 +13,6 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ['admin', 'user'], default: 'user' },
     status: { type: String, enum: ['active', 'disabled'], default: 'active' },
-    weightUnit: { type: String, enum: ['kg', 'lb'], default: 'kg' },
     /** Active training split for this user; null until they create/select one. */
     activeSplitId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -33,7 +32,6 @@ userSchema.methods.toSafeJSON = function toSafeJSON() {
     email: this.email,
     role: this.role,
     status: this.status,
-    weightUnit: this.weightUnit || 'kg',
     activeSplitId: this.activeSplitId ? this.activeSplitId.toString() : null,
   }
 }

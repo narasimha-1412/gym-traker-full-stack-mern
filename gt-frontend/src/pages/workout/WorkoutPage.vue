@@ -1,19 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
-import { useAppStore } from '@/stores/app.store'
 import { useWorkoutStore } from '@/stores/workout.store'
 import { useSnackbarStore } from '@/stores/snackbar.store'
 
 const route = useRoute()
 const router = useRouter()
-const app = useAppStore()
 const workout = useWorkoutStore()
 
 const expandedId = ref(null)
 const dialogOpen = ref(false)
 const dialogMode = ref('add')
-const form = ref({ name: '', weight: '', description: '' })
+const form = ref({ name: '', weight: '', weightUnit: 'kg', description: '' })
 
 function loadFromRoute(workoutId = route.params.workoutId) {
   const id = String(workoutId || '')
@@ -39,7 +37,7 @@ function toggleExpand(exId) {
 
 function openAdd() {
   dialogMode.value = 'add'
-  form.value = { name: '', weight: '', description: '' }
+  form.value = { name: '', weight: '', weightUnit: 'kg', description: '' }
   dialogOpen.value = true
 }
 
@@ -48,6 +46,7 @@ function openEdit(ex) {
   form.value = {
     ...ex,
     weight: workout.sanitizeWeight(ex.weight),
+    weightUnit: ex.weightUnit === 'lb' ? 'lb' : 'kg',
   }
   dialogOpen.value = true
 }
@@ -102,24 +101,16 @@ function onWeightKeydown(e) {
     </v-app-bar>
 
     <div class="content">
-      <div class="toolbar">
-        <v-btn
-          variant="text"
-          color="primary"
-          prepend-icon="mdi-plus"
-          class="add-btn"
-          @click="openAdd()"
-        >
-          Add Exercise
-        </v-btn>
-        <span class="count">{{ workout.draft.exercises.length }} exercises</span>
+      <div class="count-bar">
+        <span class="count-label">Exercises</span>
+        <span class="count-value">{{ workout.draft.exercises.length }}</span>
       </div>
 
       <div class="panel">
         <div v-if="!workout.draft.exercises.length" class="empty">
           <v-icon icon="mdi-weight-lifter" size="40" class="empty-icon" />
           <p>No exercises yet</p>
-          <span>Tap Add Exercise to get started</span>
+          <span>Tap + to get started</span>
         </div>
 
         <div v-else class="table">
@@ -163,7 +154,7 @@ function onWeightKeydown(e) {
               </div>
 
               <p class="cell weight">
-                {{ ex.weight ? `${ex.weight} ${app.weightUnit}` : '—' }}
+                {{ ex.weight ? `${ex.weight} ${ex.weightUnit === 'lb' ? 'lb' : 'kg'}` : '—' }}
               </p>
 
               <div class="cell actions" @click.stop>
@@ -208,6 +199,10 @@ function onWeightKeydown(e) {
       </div>
     </div>
 
+    <button class="fab" type="button" aria-label="Add exercise" @click="openAdd()">
+      <v-icon icon="mdi-plus" size="28" />
+    </button>
+
     <v-dialog
       :model-value="dialogOpen"
       max-width="420"
@@ -224,18 +219,38 @@ function onWeightKeydown(e) {
             prepend-inner-icon="mdi-arm-flex"
             rounded="lg"
           />
-          <v-text-field
-            :model-value="form.weight"
-            label="Weight"
-            type="text"
-            inputmode="decimal"
-            prepend-inner-icon="mdi-weight"
-            :suffix="app.weightUnit"
-            rounded="lg"
-            hide-details="auto"
-            @keydown="onWeightKeydown"
-            @update:model-value="setWeight"
-          />
+          <div class="weight-row">
+            <v-text-field
+              :model-value="form.weight"
+              label="Weight"
+              type="text"
+              inputmode="decimal"
+              prepend-inner-icon="mdi-weight"
+              rounded="lg"
+              hide-details="auto"
+              class="weight-field"
+              @keydown="onWeightKeydown"
+              @update:model-value="setWeight"
+            />
+            <div class="unit-toggle" role="group" aria-label="Weight unit">
+              <button
+                type="button"
+                class="unit-btn"
+                :class="{ active: form.weightUnit === 'kg' }"
+                @click="form.weightUnit = 'kg'"
+              >
+                kg
+              </button>
+              <button
+                type="button"
+                class="unit-btn"
+                :class="{ active: form.weightUnit === 'lb' }"
+                @click="form.weightUnit = 'lb'"
+              >
+                lb
+              </button>
+            </div>
+          </div>
           <v-textarea
             v-model="form.description"
             label="Description"
@@ -288,33 +303,39 @@ function onWeightKeydown(e) {
 
 .content {
   flex: 1;
-  padding: 12px 16px 24px;
+  padding: 12px 16px 88px;
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
 }
 
-.toolbar {
+.count-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
+  padding: 12px 14px;
+  background: $surface;
+  border: 1px solid $stroke;
+  border-radius: $radius;
 }
 
-.count {
+.count-label {
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
+  font-weight: 600;
   color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.add-btn {
-  text-transform: none;
-  font-weight: 600;
-  :deep(.v-icon) {
-    transition: transform 0.2s ease;
-  }
-  &:hover :deep(.v-icon) {
-    transform: rotate(90deg);
-  }
+.count-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $text;
+  font-variant-numeric: tabular-nums;
 }
 
 .panel {
@@ -506,6 +527,43 @@ function onWeightKeydown(e) {
   color: $muted !important;
 }
 
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 20;
+  width: 58px;
+  height: 58px;
+  border: none;
+  border-radius: 50%;
+  background: $gradient;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 24px rgba($blue, 0.35);
+  cursor: pointer;
+  animation: fab-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.08) rotate(90deg);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes fab-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .menu-list {
   background: $surface-2 !important;
   border: 1px solid $stroke;
@@ -555,6 +613,53 @@ function onWeightKeydown(e) {
   flex-direction: column;
   gap: 12px;
 }
+
+.weight-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.weight-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.unit-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 96px;
+  padding-top: 2px;
+}
+
+.unit-btn {
+  height: 40px;
+  border: 1px solid $stroke;
+  border-radius: $radius-btn;
+  background: $surface-2;
+  color: $muted;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+
+  &.active {
+    border-color: $blue;
+    color: $text;
+    background: rgba($blue, 0.12);
+  }
+
+  &:hover:not(.active) {
+    color: $text;
+  }
+}
+
 .dlg-actions {
   padding: 8px 16px 16px;
   gap: 8px;

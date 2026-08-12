@@ -107,7 +107,6 @@ export async function updateMe(req, res, next) {
     }
 
     user.name = req.body.name
-    user.weightUnit = req.body.weightUnit
     await user.save()
 
     sendSuccess(res, { user: user.toSafeJSON() })

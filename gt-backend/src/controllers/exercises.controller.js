@@ -43,6 +43,7 @@ export async function createExercise(req, res, next) {
       workoutId: workout._id,
       name: req.body.name,
       weight: req.body.weight ?? '',
+      weightUnit: req.body.weightUnit ?? 'kg',
       description: req.body.description ?? '',
     })
 
@@ -59,6 +60,7 @@ export async function updateExercise(req, res, next) {
 
     if (req.body.name !== undefined) exercise.name = req.body.name
     if (req.body.weight !== undefined) exercise.weight = req.body.weight
+    if (req.body.weightUnit !== undefined) exercise.weightUnit = req.body.weightUnit
     if (req.body.description !== undefined) exercise.description = req.body.description
     if (req.body.done !== undefined) exercise.done = req.body.done
     await exercise.save()

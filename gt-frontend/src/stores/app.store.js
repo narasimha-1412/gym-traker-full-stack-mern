@@ -48,7 +48,6 @@ export const useAppStore = defineStore('app', {
     accessToken: null,
     bootstrapped: false,
     user: emptyUser(),
-    weightUnit: 'kg', // kg | lb
     limits: defaultLimits(),
   }),
 
@@ -89,17 +88,12 @@ export const useAppStore = defineStore('app', {
       this.router.push({ name: 'workout', params: { workoutId: String(id) } })
     },
 
-    setWeightUnit(unit) {
-      if (unit === 'kg' || unit === 'lb') this.weightUnit = unit
-    },
-
-    updateProfile({ name, weightUnit }) {
+    updateProfile({ name }) {
       const trimmed = name?.trim() || ''
       if (trimmed) {
         this.user.name = trimmed
         this.user.avatar = trimmed.charAt(0).toUpperCase()
       }
-      this.setWeightUnit(weightUnit)
     },
 
     setAccessToken(token) {
@@ -111,7 +105,6 @@ export const useAppStore = defineStore('app', {
       this.setAccessToken(null)
       this.loggedIn = false
       this.user = emptyUser()
-      this.weightUnit = 'kg'
       this.limits = defaultLimits()
     },
 
@@ -126,7 +119,6 @@ export const useAppStore = defineStore('app', {
         status: user.status || 'active',
         activeSplitId: user.activeSplitId || null,
       }
-      this.setWeightUnit(user.weightUnit || 'kg')
     },
 
     async loadLimits() {

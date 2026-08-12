@@ -218,7 +218,7 @@ gt-backend/
 | `POST` | `/api/auth/refresh` | Refresh cookie | `{ accessToken }` (rotates cookie) |
 | `POST` | `/api/auth/logout` | Public | `null` — clears `sessionId` + refresh cookie |
 | `GET` | `/api/auth/me` | Bearer access | `{ user }` |
-| `PATCH` | `/api/auth/me` | Bearer access | `{ user }` — body `{ name, weightUnit }` |
+| `PATCH` | `/api/auth/me` | Bearer access | `{ user }` — body `{ name }` |
 | `POST` | `/api/auth/password` | Bearer access | `{ accessToken }` — body `{ currentPassword, newPassword }`; rotates session |
 | `POST` | `/api/users/list` | Admin | `{ users: [...] }` — body `{ search }` (empty = all; matches name/email) |
 | `POST` | `/api/users` | Admin | `{ user }` (default password `IronLog123`) |
@@ -236,8 +236,8 @@ gt-backend/
 | `PATCH` | `/api/workouts/:id` | Auth | `{ workout }` — body `{ title?`, `done? }` |
 | `DELETE` | `/api/workouts/:id` | Auth | `null` — cascades exercises |
 | `GET` | `/api/workouts/:workoutId/exercises` | Auth | `{ exercises: [...] }` |
-| `POST` | `/api/workouts/:workoutId/exercises` | Auth | `{ exercise }` — body `{ name, weight?, description? }`; enforces max exercises per workout |
-| `PATCH` | `/api/exercises/:id` | Auth | `{ exercise }` — body `{ name?`, `weight?`, `description?`, `done? }` |
+| `POST` | `/api/workouts/:workoutId/exercises` | Auth | `{ exercise }` — body `{ name, weight?, weightUnit?, description? }`; enforces max exercises per workout |
+| `PATCH` | `/api/exercises/:id` | Auth | `{ exercise }` — body `{ name?`, `weight?`, `weightUnit?`, `description?`, `done? }` |
 | `DELETE` | `/api/exercises/:id` | Auth | `null` |
 | `GET` | `/api/configs` | Auth | `{ config }` — global create limits |
 | `PATCH` | `/api/configs` | Admin | `{ config }` — body `{ maxSplits, maxWorkoutsPerSplit, maxExercisesPerWorkout }` (1–100) |
@@ -249,10 +249,10 @@ gt-backend/
 - **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'strict'`
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack (5xx)
 - **Auth**: Access JWT (default **15m**, Bearer); refresh JWT in `httpOnly` cookie `refreshToken` (default **7d**, path `/api/auth`). **Single session per user** via `User.sessionId` (`sid` in both tokens): new login replaces `sessionId` and invalidates other devices; logout sets `sessionId` to `null`; `requireAuth` and refresh both check `sid`
-- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; `weightUnit` `kg` \| `lb`; `activeSplitId` (ObjectId \| null) — user’s current training split; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client); delete cascades that user’s splits/workouts/exercises and blocks admin/self
-- **Profile**: `PATCH /api/auth/me` updates own `name` + `weightUnit` only
+- **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; `activeSplitId` (ObjectId \| null) — user’s current training split; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client); delete cascades that user’s splits/workouts/exercises and blocks admin/self
+- **Profile**: `PATCH /api/auth/me` updates own `name` only
 - **Password**: `POST /api/auth/password` requires current password; min 8 chars; rotates `sessionId` and returns new access + refresh cookie (other devices signed out)
-- **Training models** (Split → Workout → Exercise): **Splits**, **Workouts**, and **Exercises** APIs implemented. `User.activeSplitId` refs `Split`. `AppConfig` singleton holds global create limits (`maxSplits`, `maxWorkoutsPerSplit`, `maxExercisesPerWorkout`; default 20 each, range 1–100); ensured on server boot via `AppConfig.ensureDefaults()`. **Configs API**: `GET /api/configs` (any auth user), `PATCH /api/configs` (admin). Creates enforce limits; deletes cascade children; delete split reassigns `activeSplitId`
+- **Training models** (Split → Workout → Exercise): **Splits**, **Workouts**, and **Exercises** APIs implemented. Exercise stores `weight` + `weightUnit` (`kg` | `lb`, default `kg`) per exercise. `User.activeSplitId` refs `Split`. `AppConfig` singleton holds global create limits (`maxSplits`, `maxWorkoutsPerSplit`, `maxExercisesPerWorkout`; default 20 each, range 1–100); ensured on server boot via `AppConfig.ensureDefaults()`. **Configs API**: `GET /api/configs` (any auth user), `PATCH /api/configs` (admin). Creates enforce limits; deletes cascade children; delete split reassigns `activeSplitId`
 - **Validation**: Zod on login / list / create / profile / password / `:id` params; unknown body keys rejected
 - **Rate limits**: login 20/15min; change password 10/15min; users list 60/min (per IP)
 - **HTTP hardening**: Helmet security headers; JSON body max `32kb` (413 if larger); prod 500s return generic message only

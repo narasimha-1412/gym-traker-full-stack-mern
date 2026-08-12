@@ -86,6 +86,7 @@ export const useWorkoutStore = defineStore('workout', {
       const body = {
         name: form.name.trim(),
         weight,
+        weightUnit: form.weightUnit === 'lb' ? 'lb' : 'kg',
         description: form.description || '',
       }
 

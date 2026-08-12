@@ -11,7 +11,7 @@ import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
-    profile: { name: '', email: '', weightUnit: 'kg' },
+    profile: { name: '', email: '' },
     pw: { current: '', next: '', confirm: '' },
     configs: {
       maxSplits: 20,
@@ -30,7 +30,6 @@ export const useSettingsStore = defineStore('settings', {
       this.profile = {
         name: app.user.name,
         email: app.user.email,
-        weightUnit: app.weightUnit,
       }
     },
 
@@ -71,24 +70,15 @@ export const useSettingsStore = defineStore('settings', {
         return
       }
 
-      const weightUnit = this.profile.weightUnit
-      if (name === app.user.name && weightUnit === app.weightUnit) {
+      if (name === app.user.name) {
         snack.warning('No changes to save')
         return
       }
 
       await useLoaderStore().wrap(async () => {
         try {
-          const data = getData(
-            await updateProfile({
-              name,
-              weightUnit,
-            })
-          )
-          app.updateProfile({
-            name: data.user.name,
-            weightUnit: data.user.weightUnit,
-          })
+          const data = getData(await updateProfile({ name }))
+          app.updateProfile({ name: data.user.name })
           this.loadProfile()
           snack.success('Profile updated')
         } catch (err) {

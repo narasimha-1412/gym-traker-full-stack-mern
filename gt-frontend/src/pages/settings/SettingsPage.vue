@@ -104,28 +104,6 @@ function setConfigField(key, value) {
             hide-details="auto"
             disabled
           />
-
-          <div class="unit-block">
-            <p class="unit-label">Weight unit</p>
-            <div class="unit-toggle" role="group" aria-label="Weight unit">
-              <button
-                type="button"
-                class="unit-btn"
-                :class="{ active: settings.profile.weightUnit === 'kg' }"
-                @click="settings.profile.weightUnit = 'kg'"
-              >
-                kg
-              </button>
-              <button
-                type="button"
-                class="unit-btn"
-                :class="{ active: settings.profile.weightUnit === 'lb' }"
-                @click="settings.profile.weightUnit = 'lb'"
-              >
-                lb
-              </button>
-            </div>
-          </div>
         </div>
         <button class="btn-gradient" type="button" @click="settings.saveProfile()">
           Save profile
@@ -352,52 +330,6 @@ function setConfigField(key, value) {
   font-size: 0.82rem;
   line-height: 1.4;
   color: $muted;
-}
-
-.unit-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.unit-label {
-  margin: 0;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: $muted;
-}
-
-.unit-toggle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.unit-btn {
-  height: 42px;
-  border: 1px solid $stroke;
-  border-radius: $radius-btn;
-  background: $surface-2;
-  color: $muted;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    color 0.15s,
-    background 0.15s;
-
-  &.active {
-    border-color: $blue;
-    color: $text;
-    background: rgba($blue, 0.12);
-  }
-
-  &:hover:not(.active) {
-    color: $text;
-  }
 }
 
 .btn-gradient {

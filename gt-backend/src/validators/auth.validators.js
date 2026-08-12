@@ -10,7 +10,6 @@ export const loginBody = z
 export const updateProfileBody = z
   .object({
     name: z.string().trim().min(2).max(80),
-    weightUnit: z.enum(['kg', 'lb']),
   })
   .strict()
 

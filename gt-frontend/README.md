@@ -83,7 +83,7 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 - File name pattern: `<name>.store.js` (e.g. `login.store.js`)
 - Export: `use<Name>Store` via Pinia `defineStore` (options API: `state` / `actions`; prefer simple action helpers over getters)
 - **One store per page** for that page’s data and actions
-- `app.store.js` holds shared app state (auth session, access token, user, weight unit, create limits, navigation)
+- `app.store.js` holds shared app state (auth session, access token, user, create limits, navigation)
 - `snackbar.store.js` holds global toast notifications (success / error / warning / info)
 - `loader.store.js` holds the global overlay loader (`wrap()` around async work)
 - `confirm.store.js` holds the shared confirm dialog (`ask()` → promise)
@@ -228,6 +228,6 @@ Unknown paths redirect to `/`.
 - **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
 - **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password/delete against `/api/users`; email auto-generated from name as camelCase `@ironlog.com` (e.g. `Tony Stark` → `tonyStark@ironlog.com`); default password `IronLog123`; list/search via one call `POST /api/users/list` body `{ search }` (empty string = all; debounced 300ms, spinner in list while loading); per-user ⋮ menu for reset password / enable-disable / delete (non-admins only; confirm before delete)
 - **Dashboard** (`/`): tabs for **Workouts** (default) and **Splits**; progress ring shows active split name + workout completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Workouts); FAB / rename / delete for name-only create-edit on the current tab; workouts scoped to the active split via `/api/splits` + `/api/splits/:id/workouts`. Domain terms: **Split → Workout → Exercise**
-- **Workout** (`/workout/:workoutId`): exercises CRUD under a workout via `/api/workouts/:id/exercises`, mark done, weight unit from settings
-- **Settings**: profile via `PATCH /api/auth/me`; change password via `POST /api/auth/password` (current + new, min 8); log out hits API; admin-only **Configs** tab reads/writes global create limits via `GET/PATCH /api/configs` (max splits, workouts per split, exercises per workout; default 20 each, clamp 1–100); create actions also blocked client-side when at limit without deleting existing items
+- **Workout** (`/workout/:workoutId`): exercises CRUD under a workout via `/api/workouts/:id/exercises`, mark done; each exercise has its own `weight` + `weightUnit` (`kg`/`lb`) set in the create/edit dialog
+- **Settings**: profile via `PATCH /api/auth/me` (`name` only); change password via `POST /api/auth/password` (current + new, min 8); log out hits API; admin-only **Configs** tab reads/writes global create limits via `GET/PATCH /api/configs` (max splits, workouts per split, exercises per workout; default 20 each, clamp 1–100); create actions also blocked client-side when at limit without deleting existing items
 - **Limits**: values live on `app.store.limits` (loaded from `/api/configs` on bootstrap/login/settings); backend enforces on create
