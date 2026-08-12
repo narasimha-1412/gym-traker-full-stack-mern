@@ -4,6 +4,7 @@ import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
 import { login } from '@/networks/auth.services'
 import { getData, apiMessage } from '@/networks/base/envelope'
+import { useDashboardStore } from './dashboard.store'
 
 export const useLoginStore = defineStore('login', {
   state: () => ({
@@ -29,6 +30,12 @@ export const useLoginStore = defineStore('login', {
           const data = getData(await login(email, this.password))
           const app = useAppStore()
           app.loginSession(data.user, data.accessToken)
+          useDashboardStore().clear()
+          try {
+            await app.loadLimits()
+          } catch {
+            // defaults already in app.store
+          }
           app.goDashboard()
           snack.success('Welcome back')
         } catch (err) {

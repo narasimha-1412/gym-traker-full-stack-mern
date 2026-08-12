@@ -69,7 +69,7 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 - `src/networks/base/accessToken.js` — in-memory access token (not localStorage)
 - `src/networks/base/api.js` — thin `get` / `post` / `put` / `patch` / `delete` wrappers
 - `src/networks/base/apiRoutes.js` — path constants and builders only (no HTTP)
-- `src/networks/auth.services.js` / `users.services.js` — named functions (route + method + payload)
+- `src/networks/auth.services.js` / `users.services.js` / `configs.services.js` / `splits.services.js` / `workouts.services.js` / `exercises.services.js` — named functions (route + method + payload)
 - Paths live only in `apiRoutes.js`; HTTP only in services; loading / snackbars stay in stores
 - Pages stay presentational; do not call Axios from Vue components
 - `src/networks/base/envelope.js` — unwrap `{ success, data }` responses; `apiMessage()` for errors
@@ -83,7 +83,7 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 - File name pattern: `<name>.store.js` (e.g. `login.store.js`)
 - Export: `use<Name>Store` via Pinia `defineStore` (options API: `state` / `actions`; prefer simple action helpers over getters)
 - **One store per page** for that page’s data and actions
-- `app.store.js` holds shared app state (auth session, access token, user, weight unit, navigation)
+- `app.store.js` holds shared app state (auth session, access token, user, weight unit, create limits, navigation)
 - `snackbar.store.js` holds global toast notifications (success / error / warning / info)
 - `loader.store.js` holds the global overlay loader (`wrap()` around async work)
 - `confirm.store.js` holds the shared confirm dialog (`ask()` → promise)
@@ -155,7 +155,11 @@ gt-frontend/
     │   │   ├── apiRoutes.js
     │   │   └── envelope.js
     │   ├── auth.services.js
-    │   └── users.services.js
+    │   ├── users.services.js
+    │   ├── configs.services.js
+    │   ├── splits.services.js
+    │   ├── workouts.services.js
+    │   └── exercises.services.js
     ├── assets/
     ├── plugins/
     │   └── vuetify.js
@@ -223,7 +227,7 @@ Unknown paths redirect to `/`.
 
 - **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
 - **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password against `/api/users`; email auto-generated from name as camelCase `@ironlog.com` (e.g. `Tony Stark` → `tonyStark@ironlog.com`); default password `IronLog123`; list/search via one call `POST /api/users/list` body `{ search }` (empty string = all; debounced 300ms, spinner in list while loading); per-user ⋮ menu for reset password / enable-disable
-- **Dashboard** (`/`): tabs for **Workouts** (default) and **Splits**; progress ring shows active split name + workout completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Workouts); FAB / rename / delete for name-only create-edit on the current tab; workouts and exercises stay scoped to the active split (still local mock). Domain terms: **Split → Workout → Exercise**
-- **Workout** (`/workout/:workoutId`): exercises CRUD under a workout, mark done, weight unit from settings (still local mock)
-- **Settings**: profile via `PATCH /api/auth/me`; change password via `POST /api/auth/password` (current + new, min 8); log out hits API; admin-only **Configs** tab sets global create limits (max splits, workouts per split, exercises per workout; default 20 each, range 1–100, stored in `localStorage` for now); create actions block when at limit without deleting existing items
-- **Limits** (frontend mock): enforced in `dashboard.store` / `workout.store` on add; values live on `app.store.limits`
+- **Dashboard** (`/`): tabs for **Workouts** (default) and **Splits**; progress ring shows active split name + workout completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Workouts); FAB / rename / delete for name-only create-edit on the current tab; workouts scoped to the active split via `/api/splits` + `/api/splits/:id/workouts`. Domain terms: **Split → Workout → Exercise**
+- **Workout** (`/workout/:workoutId`): exercises CRUD under a workout via `/api/workouts/:id/exercises`, mark done, weight unit from settings
+- **Settings**: profile via `PATCH /api/auth/me`; change password via `POST /api/auth/password` (current + new, min 8); log out hits API; admin-only **Configs** tab reads/writes global create limits via `GET/PATCH /api/configs` (max splits, workouts per split, exercises per workout; default 20 each, clamp 1–100); create actions also blocked client-side when at limit without deleting existing items
+- **Limits**: values live on `app.store.limits` (loaded from `/api/configs` on bootstrap/login/settings); backend enforces on create

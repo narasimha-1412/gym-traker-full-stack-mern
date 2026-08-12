@@ -12,4 +12,24 @@ export const routes = {
     status: id => `/api/users/${id}/status`,
     resetPassword: id => `/api/users/${id}/reset-password`,
   },
+  configs: {
+    root: '/api/configs',
+  },
+  splits: {
+    list: '/api/splits',
+    create: '/api/splits',
+    one: id => `/api/splits/${id}`,
+    activate: id => `/api/splits/${id}/activate`,
+  },
+  workouts: {
+    list: splitId => `/api/splits/${splitId}/workouts`,
+    create: splitId => `/api/splits/${splitId}/workouts`,
+    reset: splitId => `/api/splits/${splitId}/workouts/reset`,
+    one: id => `/api/workouts/${id}`,
+  },
+  exercises: {
+    list: workoutId => `/api/workouts/${workoutId}/exercises`,
+    create: workoutId => `/api/workouts/${workoutId}/exercises`,
+    one: id => `/api/exercises/${id}`,
+  },
 }

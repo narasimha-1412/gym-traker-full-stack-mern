@@ -4,6 +4,13 @@ import { useDashboardStore } from './dashboard.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
 import { useConfirmStore } from './confirm.store'
+import {
+  listExercises,
+  createExercise,
+  updateExercise,
+  deleteExercise as deleteExerciseRequest,
+} from '@/networks/exercises.services'
+import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useWorkoutStore = defineStore('workout', {
   state: () => ({
@@ -11,36 +18,52 @@ export const useWorkoutStore = defineStore('workout', {
   }),
 
   actions: {
-    clone(obj) {
-      return JSON.parse(JSON.stringify(obj))
-    },
-
     sanitizeWeight(value) {
       const cleaned = String(value ?? '').replace(/[^\d.]/g, '')
       const [whole, ...rest] = cleaned.split('.')
       return rest.length ? `${whole}.${rest.join('')}` : whole
     },
 
-    persist() {
-      if (!this.draft) return
-      const ctx = useDashboardStore().findWorkoutContext(this.draft.id)
-      if (ctx) ctx.split.workouts[ctx.index] = this.clone(this.draft)
-    },
+    async loadDraft(id) {
+      const dash = useDashboardStore()
 
-    loadDraft(id) {
-      const src = useDashboardStore().getById(id)
-      this.draft = src ? this.clone(src) : null
-      return !!this.draft
+      return await useLoaderStore().wrap(async () => {
+        try {
+          await dash.ensureLoaded()
+          const workout = await dash.findWorkout(id)
+          if (!workout) {
+            this.draft = null
+            return false
+          }
+
+          const data = getData(await listExercises(id))
+          this.draft = {
+            id: workout.id,
+            title: workout.title,
+            done: !!workout.done,
+            exercises: data.exercises || [],
+          }
+          return true
+        } catch {
+          this.draft = null
+          return false
+        }
+      })
     },
 
     async toggleExercise(exId) {
+      const snack = useSnackbarStore()
       const ex = this.draft?.exercises.find(e => e.id === exId)
       if (!ex) return
 
-      await useLoaderStore().wrap(() => {
-        ex.done = !ex.done
-        this.persist()
-        useSnackbarStore().success(ex.done ? `"${ex.name}" marked done` : `"${ex.name}" unmarked`)
+      await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await updateExercise(exId, { done: !ex.done }))
+          Object.assign(ex, data.exercise)
+          snack.success(ex.done ? `"${ex.name}" marked done` : `"${ex.name}" unmarked`)
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not update exercise'))
+        }
       })
     },
 
@@ -60,32 +83,34 @@ export const useWorkoutStore = defineStore('workout', {
       }
 
       const weight = this.sanitizeWeight(form.weight)
-      await useLoaderStore().wrap(() => {
-        if (mode === 'edit') {
-          const ex = this.draft.exercises.find(e => e.id === form.id)
-          if (ex)
-            Object.assign(ex, {
-              name: form.name.trim(),
-              weight,
-              description: form.description || '',
-            })
-          snack.success('Exercise updated')
-        } else {
-          this.draft.exercises.push({
-            id: useDashboardStore().nextId(),
-            name: form.name.trim(),
-            weight,
-            description: form.description || '',
-            done: false,
-          })
-          snack.success('Exercise added')
+      const body = {
+        name: form.name.trim(),
+        weight,
+        description: form.description || '',
+      }
+
+      return await useLoaderStore().wrap(async () => {
+        try {
+          if (mode === 'edit') {
+            const data = getData(await updateExercise(form.id, body))
+            const ex = this.draft.exercises.find(e => e.id === form.id)
+            if (ex) Object.assign(ex, data.exercise)
+            snack.success('Exercise updated')
+          } else {
+            const data = getData(await createExercise(this.draft.id, body))
+            this.draft.exercises.push(data.exercise)
+            snack.success('Exercise added')
+          }
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not save exercise'))
+          return false
         }
-        this.persist()
       })
-      return true
     },
 
     async deleteExercise(exId) {
+      const snack = useSnackbarStore()
       if (!this.draft) return false
       const name = this.draft.exercises.find(e => e.id === exId)?.name
 
@@ -98,16 +123,20 @@ export const useWorkoutStore = defineStore('workout', {
       })
       if (!ok) return false
 
-      await useLoaderStore().wrap(() => {
-        this.draft.exercises = this.draft.exercises.filter(e => e.id !== exId)
-        this.persist()
-        useSnackbarStore().success(name ? `"${name}" deleted` : 'Exercise deleted')
+      return await useLoaderStore().wrap(async () => {
+        try {
+          getData(await deleteExerciseRequest(exId))
+          this.draft.exercises = this.draft.exercises.filter(e => e.id !== exId)
+          snack.success(name ? `"${name}" deleted` : 'Exercise deleted')
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not delete exercise'))
+          return false
+        }
       })
-      return true
     },
 
     goBack() {
-      this.persist()
       this.draft = null
       useAppStore().goDashboard()
     },

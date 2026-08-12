@@ -30,7 +30,7 @@ defineEmits(['select', 'edit', 'delete'])
     <div class="meta">
       <p class="title">{{ split.title }}</p>
       <p class="sub">
-        {{ split.workouts.length }} workout{{ split.workouts.length === 1 ? '' : 's' }}
+        {{ split.workoutCount }} workout{{ split.workoutCount === 1 ? '' : 's' }}
       </p>
     </div>
     <div class="menu-wrap" @click.stop>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app.store'
 import { useDashboardStore } from '@/stores/dashboard.store'
 import { useSettingsStore } from '@/stores/settings.store'
@@ -12,6 +12,10 @@ const app = useAppStore()
 const dash = useDashboardStore()
 const settings = useSettingsStore()
 const snack = useSnackbarStore()
+
+onMounted(() => {
+  dash.load()
+})
 
 const tab = ref('workouts')
 const addOpen = ref(false)

@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
 import { useAppStore } from './app.store'
+import { useDashboardStore } from './dashboard.store'
 import { useLoginStore } from './login.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
 import { useConfirmStore } from './confirm.store'
 import { updateProfile, changePassword as changePasswordRequest } from '@/networks/auth.services'
+import { getConfig, updateConfig } from '@/networks/configs.services'
 import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useSettingsStore = defineStore('settings', {
@@ -32,16 +34,27 @@ export const useSettingsStore = defineStore('settings', {
       }
     },
 
-    loadConfigs() {
+    loadConfigsFromApp() {
       this.configs = useAppStore().getLimits()
+    },
+
+    async loadConfigs() {
+      const app = useAppStore()
+      const data = getData(await getConfig())
+      app.setLimits(data.config)
+      this.loadConfigsFromApp()
     },
 
     async enter() {
       this.resetForm()
-      await useLoaderStore().wrap(() => {
-        this.loadProfile()
-        this.loadConfigs()
-        useAppStore().goSettings()
+      await useLoaderStore().wrap(async () => {
+        try {
+          this.loadProfile()
+          await this.loadConfigs()
+          useAppStore().goSettings()
+        } catch (err) {
+          useSnackbarStore().error(apiMessage(err, 'Could not load settings'))
+        }
       })
     },
 
@@ -109,12 +122,18 @@ export const useSettingsStore = defineStore('settings', {
         return false
       }
 
-      await useLoaderStore().wrap(() => {
-        app.setLimits(next)
-        this.loadConfigs()
-        snack.success('Configs updated')
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await updateConfig(next))
+          app.setLimits(data.config)
+          this.loadConfigsFromApp()
+          snack.success('Configs updated')
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not update configs'))
+          return false
+        }
       })
-      return true
     },
 
     async changePassword() {
@@ -168,6 +187,7 @@ export const useSettingsStore = defineStore('settings', {
       await useLoaderStore().wrap(async () => {
         this.resetForm()
         useLoginStore().reset()
+        useDashboardStore().clear()
         await useAppStore().logout()
         useSnackbarStore().info('Logged out')
       })

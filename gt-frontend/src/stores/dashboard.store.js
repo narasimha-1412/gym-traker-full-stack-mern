@@ -3,131 +3,28 @@ import { useAppStore } from './app.store'
 import { useSnackbarStore } from './snackbar.store'
 import { useLoaderStore } from './loader.store'
 import { useConfirmStore } from './confirm.store'
-
-let uid = 100
+import {
+  listSplits,
+  createSplit,
+  renameSplit as renameSplitRequest,
+  deleteSplit as deleteSplitRequest,
+  activateSplit,
+} from '@/networks/splits.services'
+import {
+  listWorkouts,
+  createWorkout,
+  updateWorkout,
+  deleteWorkout as deleteWorkoutRequest,
+  resetWorkouts,
+} from '@/networks/workouts.services'
+import { getData, apiMessage } from '@/networks/base/envelope'
 
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
-    splits: [
-      {
-        id: 1,
-        title: 'PPL Bulk',
-        workouts: [
-          {
-            id: 1,
-            title: 'Push Day',
-            done: true,
-            exercises: [
-              {
-                id: 11,
-                name: 'Bench Press',
-                weight: '80',
-                description: '4 sets · controlled tempo',
-                done: true,
-              },
-              {
-                id: 12,
-                name: 'Overhead Press',
-                weight: '45',
-                description: '3 sets · full range',
-                done: false,
-              },
-            ],
-          },
-          {
-            id: 2,
-            title: 'Pull Day',
-            done: false,
-            exercises: [
-              {
-                id: 21,
-                name: 'Deadlift',
-                weight: '120',
-                description: '3 sets · hinge focus',
-                done: false,
-              },
-              {
-                id: 22,
-                name: 'Barbell Row',
-                weight: '70',
-                description: '4 sets · squeeze top',
-                done: false,
-              },
-              {
-                id: 23,
-                name: 'Pull-ups',
-                weight: '',
-                description: '3 sets to failure',
-                done: false,
-              },
-            ],
-          },
-          {
-            id: 3,
-            title: 'Leg Day',
-            done: false,
-            exercises: [
-              {
-                id: 31,
-                name: 'Back Squat',
-                weight: '100',
-                description: '5 sets · depth priority',
-                done: false,
-              },
-              {
-                id: 32,
-                name: 'Romanian DL',
-                weight: '80',
-                description: '3 sets · hamstring stretch',
-                done: false,
-              },
-            ],
-          },
-          {
-            id: 4,
-            title: 'Core & Mobility',
-            done: false,
-            exercises: [
-              {
-                id: 41,
-                name: 'Hanging Knee Raise',
-                weight: '',
-                description: '3 sets · slow',
-                done: false,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: 2,
-        title: 'Home Gym',
-        workouts: [
-          {
-            id: 5,
-            title: 'Full Body A',
-            done: false,
-            exercises: [
-              {
-                id: 51,
-                name: 'Goblet Squat',
-                weight: '24',
-                description: '4 sets',
-                done: false,
-              },
-              {
-                id: 52,
-                name: 'Push-ups',
-                weight: '',
-                description: '3 sets',
-                done: false,
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    activeSplitId: 1,
+    splits: [],
+    workouts: [],
+    activeSplitId: null,
+    loaded: false,
   }),
 
   actions: {
@@ -136,7 +33,7 @@ export const useDashboardStore = defineStore('dashboard', {
     },
 
     getActiveWorkouts() {
-      return this.getActiveSplit()?.workouts || []
+      return this.workouts
     },
 
     getProgress() {
@@ -151,42 +48,78 @@ export const useDashboardStore = defineStore('dashboard', {
     },
 
     getSplitById(id) {
-      const n = Number(id)
-      return this.splits.find(s => s.id === n || s.id === id)
+      return this.splits.find(s => s.id === id) || null
     },
 
     getById(id) {
-      const n = Number(id)
-      for (const split of this.splits) {
-        const workout = split.workouts.find(w => w.id === n || w.id === id)
-        if (workout) return workout
-      }
-      return null
+      return this.workouts.find(w => w.id === id) || null
     },
 
-    findWorkoutContext(id) {
-      const n = Number(id)
-      for (const split of this.splits) {
-        const index = split.workouts.findIndex(w => w.id === n || w.id === id)
-        if (index >= 0) return { split, index, workout: split.workouts[index] }
-      }
-      return null
+    clear() {
+      this.splits = []
+      this.workouts = []
+      this.activeSplitId = null
+      this.loaded = false
     },
 
-    nextId() {
-      return ++uid
+    async loadWorkouts(splitId) {
+      if (!splitId) {
+        this.workouts = []
+        return
+      }
+      const data = getData(await listWorkouts(splitId))
+      this.workouts = data.workouts || []
+    },
+
+    async fetch() {
+      const app = useAppStore()
+      const data = getData(await listSplits())
+      this.splits = data.splits || []
+      this.activeSplitId = app.user.activeSplitId || this.splits[0]?.id || null
+      if (this.activeSplitId && !this.getSplitById(this.activeSplitId)) {
+        this.activeSplitId = this.splits[0]?.id || null
+        app.setActiveSplitId(this.activeSplitId)
+      }
+      await this.loadWorkouts(this.activeSplitId)
+      this.loaded = true
+    },
+
+    async load() {
+      const snack = useSnackbarStore()
+
+      await useLoaderStore().wrap(async () => {
+        try {
+          await this.fetch()
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not load training data'))
+        }
+      })
+    },
+
+    async ensureLoaded() {
+      if (this.loaded) return
+      await this.fetch()
     },
 
     async setActiveSplit(id) {
+      const snack = useSnackbarStore()
       const split = this.getSplitById(id)
       if (!split) return false
       if (split.id === this.activeSplitId) return true
 
-      await useLoaderStore().wrap(() => {
-        this.activeSplitId = split.id
-        useSnackbarStore().success(`Switched to ${split.title}`)
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await activateSplit(id))
+          this.activeSplitId = data.activeSplitId
+          useAppStore().setActiveSplitId(data.activeSplitId)
+          await this.loadWorkouts(this.activeSplitId)
+          snack.success(`Switched to ${split.title}`)
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not switch split'))
+          return false
+        }
       })
-      return true
     },
 
     async addSplit(title) {
@@ -203,13 +136,22 @@ export const useDashboardStore = defineStore('dashboard', {
         return false
       }
 
-      await useLoaderStore().wrap(() => {
-        const id = ++uid
-        this.splits.push({ id, title: name, workouts: [] })
-        if (!this.activeSplitId) this.activeSplitId = id
-        snack.success(`Split "${name}" created`)
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await createSplit({ title: name }))
+          this.splits.push(data.split)
+          if (data.activeSplitId) {
+            this.activeSplitId = data.activeSplitId
+            useAppStore().setActiveSplitId(data.activeSplitId)
+            if (data.activeSplitId === data.split.id) this.workouts = []
+          }
+          snack.success(`Split "${name}" created`)
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not create split'))
+          return false
+        }
       })
-      return true
     },
 
     async addWorkout(title) {
@@ -227,21 +169,23 @@ export const useDashboardStore = defineStore('dashboard', {
       }
 
       const { maxWorkoutsPerSplit } = useAppStore().getLimits()
-      if (split.workouts.length >= maxWorkoutsPerSplit) {
+      if (this.workouts.length >= maxWorkoutsPerSplit) {
         snack.warning(`Workout limit reached (${maxWorkoutsPerSplit})`)
         return false
       }
 
-      await useLoaderStore().wrap(() => {
-        split.workouts.push({
-          id: ++uid,
-          title: name,
-          done: false,
-          exercises: [],
-        })
-        snack.success(`Workout "${name}" created`)
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await createWorkout(split.id, { title: name }))
+          this.workouts.push(data.workout)
+          split.workoutCount = (split.workoutCount || 0) + 1
+          snack.success(`Workout "${name}" created`)
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not create workout'))
+          return false
+        }
       })
-      return true
     },
 
     async renameWorkout(id, title) {
@@ -255,11 +199,17 @@ export const useDashboardStore = defineStore('dashboard', {
       const w = this.getById(id)
       if (!w) return false
 
-      await useLoaderStore().wrap(() => {
-        w.title = name
-        snack.success('Workout renamed')
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await updateWorkout(id, { title: name }))
+          Object.assign(w, data.workout)
+          snack.success('Workout renamed')
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not rename workout'))
+          return false
+        }
       })
-      return true
     },
 
     async renameSplit(id, title) {
@@ -273,41 +223,62 @@ export const useDashboardStore = defineStore('dashboard', {
       const s = this.getSplitById(id)
       if (!s) return false
 
-      await useLoaderStore().wrap(() => {
-        s.title = name
-        snack.success('Split renamed')
+      return await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await renameSplitRequest(id, { title: name }))
+          Object.assign(s, data.split)
+          snack.success('Split renamed')
+          return true
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not rename split'))
+          return false
+        }
       })
-      return true
     },
 
     async toggleWorkout(id) {
+      const snack = useSnackbarStore()
       const w = this.getById(id)
       if (!w) return
 
-      await useLoaderStore().wrap(() => {
-        w.done = !w.done
-        useSnackbarStore().success(w.done ? `"${w.title}" marked done` : `"${w.title}" unmarked`)
+      await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await updateWorkout(id, { done: !w.done }))
+          Object.assign(w, data.workout)
+          snack.success(w.done ? `"${w.title}" marked done` : `"${w.title}" unmarked`)
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not update workout'))
+        }
       })
     },
 
     async deleteWorkout(id) {
-      const ctx = this.findWorkoutContext(id)
-      if (!ctx) return
+      const snack = useSnackbarStore()
+      const w = this.getById(id)
+      if (!w) return
 
       const ok = await useConfirmStore().ask({
         title: 'Delete workout?',
-        message: `"${ctx.workout.title}" and its exercises will be removed.`,
+        message: `"${w.title}" and its exercises will be removed.`,
         confirmLabel: 'Delete',
       })
       if (!ok) return
 
-      await useLoaderStore().wrap(() => {
-        ctx.split.workouts = ctx.split.workouts.filter(item => item.id !== id)
-        useSnackbarStore().success(`"${ctx.workout.title}" deleted`)
+      await useLoaderStore().wrap(async () => {
+        try {
+          getData(await deleteWorkoutRequest(id))
+          this.workouts = this.workouts.filter(item => item.id !== id)
+          const split = this.getActiveSplit()
+          if (split) split.workoutCount = Math.max(0, (split.workoutCount || 1) - 1)
+          snack.success(`"${w.title}" deleted`)
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not delete workout'))
+        }
       })
     },
 
     async deleteSplit(id) {
+      const snack = useSnackbarStore()
       const s = this.getSplitById(id)
       if (!s) return
 
@@ -318,12 +289,17 @@ export const useDashboardStore = defineStore('dashboard', {
       })
       if (!ok) return
 
-      await useLoaderStore().wrap(() => {
-        this.splits = this.splits.filter(item => item.id !== id)
-        if (this.activeSplitId === id) {
-          this.activeSplitId = this.splits[0]?.id ?? null
+      await useLoaderStore().wrap(async () => {
+        try {
+          const data = getData(await deleteSplitRequest(id))
+          this.splits = this.splits.filter(item => item.id !== id)
+          this.activeSplitId = data.activeSplitId
+          useAppStore().setActiveSplitId(data.activeSplitId)
+          await this.loadWorkouts(this.activeSplitId)
+          snack.success(`"${s.title}" deleted`)
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not delete split'))
         }
-        useSnackbarStore().success(`"${s.title}" deleted`)
       })
     },
 
@@ -333,16 +309,30 @@ export const useDashboardStore = defineStore('dashboard', {
       })
     },
 
+    async findWorkout(id) {
+      const local = this.getById(id)
+      if (local) return local
+
+      for (const split of this.splits) {
+        if (split.id === this.activeSplitId) continue
+        const data = getData(await listWorkouts(split.id))
+        const found = (data.workouts || []).find(w => w.id === id)
+        if (found) return found
+      }
+      return null
+    },
+
     async resetProgress() {
+      const snack = useSnackbarStore()
       const split = this.getActiveSplit()
       if (!split) {
-        useSnackbarStore().info('Create a split first')
+        snack.info('Create a split first')
         return
       }
 
       const { done } = this.getProgress()
       if (!done) {
-        useSnackbarStore().info('Progress is already clear')
+        snack.info('Progress is already clear')
         return
       }
 
@@ -353,11 +343,16 @@ export const useDashboardStore = defineStore('dashboard', {
       })
       if (!ok) return
 
-      await useLoaderStore().wrap(() => {
-        split.workouts.forEach(w => {
-          w.done = false
-        })
-        useSnackbarStore().success('Workout progress reset')
+      await useLoaderStore().wrap(async () => {
+        try {
+          getData(await resetWorkouts(split.id))
+          this.workouts.forEach(w => {
+            w.done = false
+          })
+          snack.success('Workout progress reset')
+        } catch (err) {
+          snack.error(apiMessage(err, 'Could not reset progress'))
+        }
       })
     },
   },

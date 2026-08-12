@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { setAccessToken } from '@/networks/base/accessToken'
 import { refresh, me, logout as logoutRequest } from '@/networks/auth.services'
+import { getConfig } from '@/networks/configs.services'
 import { getData } from '@/networks/base/envelope'
 
-const LIMITS_KEY = 'ironlog.limits'
 const LIMIT_MIN = 1
 const LIMIT_MAX = 100
 
@@ -13,6 +13,7 @@ const emptyUser = () => ({
   avatar: '',
   role: 'user',
   status: 'active',
+  activeSplitId: null,
 })
 
 export function defaultLimits() {
@@ -41,20 +42,6 @@ export function normalizeLimits(input = {}) {
   }
 }
 
-function readStoredLimits() {
-  try {
-    const raw = localStorage.getItem(LIMITS_KEY)
-    if (!raw) return defaultLimits()
-    return normalizeLimits(JSON.parse(raw))
-  } catch {
-    return defaultLimits()
-  }
-}
-
-function writeStoredLimits(limits) {
-  localStorage.setItem(LIMITS_KEY, JSON.stringify(limits))
-}
-
 export const useAppStore = defineStore('app', {
   state: () => ({
     loggedIn: false,
@@ -62,7 +49,7 @@ export const useAppStore = defineStore('app', {
     bootstrapped: false,
     user: emptyUser(),
     weightUnit: 'kg', // kg | lb
-    limits: readStoredLimits(),
+    limits: defaultLimits(),
   }),
 
   actions: {
@@ -76,7 +63,10 @@ export const useAppStore = defineStore('app', {
 
     setLimits(next) {
       this.limits = normalizeLimits(next)
-      writeStoredLimits(this.limits)
+    },
+
+    setActiveSplitId(id) {
+      this.user.activeSplitId = id || null
     },
 
     goLogin() {
@@ -122,6 +112,7 @@ export const useAppStore = defineStore('app', {
       this.loggedIn = false
       this.user = emptyUser()
       this.weightUnit = 'kg'
+      this.limits = defaultLimits()
     },
 
     loginSession(user, accessToken) {
@@ -133,8 +124,14 @@ export const useAppStore = defineStore('app', {
         avatar: (user.name || '').charAt(0).toUpperCase(),
         role: user.role || 'user',
         status: user.status || 'active',
+        activeSplitId: user.activeSplitId || null,
       }
       this.setWeightUnit(user.weightUnit || 'kg')
+    },
+
+    async loadLimits() {
+      const data = getData(await getConfig())
+      this.setLimits(data.config)
     },
 
     async bootstrap() {
@@ -144,6 +141,11 @@ export const useAppStore = defineStore('app', {
         this.setAccessToken(refreshData.accessToken)
         const meData = getData(await me())
         this.loginSession(meData.user, refreshData.accessToken)
+        try {
+          await this.loadLimits()
+        } catch {
+          this.limits = defaultLimits()
+        }
       } catch {
         this.clearSession()
       } finally {

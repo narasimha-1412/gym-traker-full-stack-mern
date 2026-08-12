@@ -27,7 +27,7 @@ defineEmits(['toggle', 'open', 'edit', 'delete'])
     <div class="meta">
       <p class="title">{{ workout.title }}</p>
       <p class="sub">
-        {{ workout.exercises.length }} exercise{{ workout.exercises.length === 1 ? '' : 's' }}
+        {{ workout.exerciseCount }} exercise{{ workout.exerciseCount === 1 ? '' : 's' }}
       </p>
     </div>
     <div class="menu-wrap" @click.stop>
