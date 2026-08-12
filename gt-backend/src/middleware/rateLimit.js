@@ -31,3 +31,21 @@ export const changePasswordLimiter = rateLimit({
   legacyHeaders: false,
   handler: rateLimitHandler,
 })
+
+/** Limit refresh token churn / brute force. */
+export const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: rateLimitHandler,
+})
+
+/** Limit bulk plan imports. */
+export const bulkImportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: rateLimitHandler,
+})

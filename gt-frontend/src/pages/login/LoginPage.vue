@@ -59,6 +59,7 @@ const showPassword = ref(false)
   position: relative;
   overflow: hidden;
   background: $bg;
+  height: 100%;
 }
 
 .blob {

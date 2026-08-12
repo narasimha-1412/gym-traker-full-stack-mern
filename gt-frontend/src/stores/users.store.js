@@ -96,13 +96,17 @@ export const useUsersStore = defineStore('users', {
         snack.error('Could not generate email from name')
         return
       }
+      if (!this.password || this.password.length < 4) {
+        snack.warning('Password must be at least 4 characters')
+        return
+      }
 
       await useLoaderStore().wrap(async () => {
         try {
           await createUser({
             name,
             email,
-            password: this.password || DEFAULT_PASSWORD,
+            password: this.password,
           })
           this.name = ''
           this.password = DEFAULT_PASSWORD

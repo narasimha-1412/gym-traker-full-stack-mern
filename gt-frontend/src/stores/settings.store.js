@@ -185,8 +185,8 @@ export const useSettingsStore = defineStore('settings', {
         snack.error('Passwords do not match')
         return
       }
-      if (next.length < 8) {
-        snack.warning('Password must be at least 8 characters')
+      if (next.length < 4) {
+        snack.warning('Password must be at least 4 characters')
         return
       }
       if (next === current) {

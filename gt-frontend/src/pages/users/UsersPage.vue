@@ -55,11 +55,10 @@ onMounted(() => {
           <div class="copy-field">
             <v-text-field
               v-model="users.password"
-              label="Default password"
+              label="Password"
               type="text"
               prepend-inner-icon="mdi-lock-outline"
               rounded="lg"
-              disabled
               hide-details
             />
             <v-btn
@@ -67,12 +66,13 @@ onMounted(() => {
               variant="text"
               size="small"
               class="copy-btn"
-              aria-label="Copy default password"
+              aria-label="Copy password"
               @click="users.copyDefaultPassword()"
             >
               <v-icon icon="mdi-content-copy" size="18" />
             </v-btn>
           </div>
+          <p class="field-hint">Min 4 characters</p>
         </div>
         <button class="btn-gradient" type="button" @click="users.create()">Create</button>
       </div>
@@ -229,6 +229,13 @@ onMounted(() => {
     transform: translateY(-50%);
     z-index: 1;
   }
+}
+
+.field-hint {
+  margin: -6px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: $muted;
 }
 
 .btn-gradient {

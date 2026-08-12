@@ -29,7 +29,7 @@ export async function createUser(req, res, next) {
   try {
     const name = req.body.name
     const email = req.body.email.toLowerCase()
-    const password = req.body.password || DEFAULT_PASSWORD
+    const password = req.body.password
 
     const exists = await User.findOne({ email })
     if (exists) {
@@ -83,6 +83,7 @@ export async function resetPassword(req, res, next) {
     }
 
     user.password = await bcrypt.hash(DEFAULT_PASSWORD, 10)
+    user.sessionId = null
     await user.save()
 
     sendSuccess(res, { message: 'Password reset successfully' })

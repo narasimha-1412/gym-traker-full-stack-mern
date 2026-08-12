@@ -14,12 +14,12 @@ import {
   updateProfileBody,
   changePasswordBody,
 } from '../validators/auth.validators.js'
-import { loginLimiter, changePasswordLimiter } from '../middleware/rateLimit.js'
+import { loginLimiter, changePasswordLimiter, refreshLimiter } from '../middleware/rateLimit.js'
 
 const router = Router()
 
 router.post('/login', loginLimiter, validate(loginBody), login)
-router.post('/refresh', refresh)
+router.post('/refresh', refreshLimiter, refresh)
 router.post('/logout', logout)
 router.get('/me', requireAuth, me)
 router.patch('/me', requireAuth, validate(updateProfileBody), updateMe)

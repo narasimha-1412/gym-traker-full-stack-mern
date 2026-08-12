@@ -22,19 +22,19 @@ const bulkExercise = z
 const bulkWorkout = z
   .object({
     title: z.string().trim().min(1).max(80),
-    exercises: z.array(bulkExercise).max(100).optional().default([]),
+    exercises: z.array(bulkExercise).max(20).optional().default([]),
   })
   .strict()
 
 const bulkSplit = z
   .object({
     title: z.string().trim().min(1).max(80),
-    workouts: z.array(bulkWorkout).max(100).optional().default([]),
+    workouts: z.array(bulkWorkout).max(20).optional().default([]),
   })
   .strict()
 
 export const bulkImportBody = z
   .object({
-    splits: z.array(bulkSplit).min(1).max(100),
+    splits: z.array(bulkSplit).min(1).max(20),
   })
   .strict()
