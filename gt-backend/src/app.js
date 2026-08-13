@@ -21,8 +21,12 @@ function isAllowedOrigin(origin) {
   if (!env.isProd && localhostOrigin.test(origin)) return true
   return false
 }
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+)
 
-app.use(helmet())
 app.use(
   cors({
     origin(origin, callback) {
