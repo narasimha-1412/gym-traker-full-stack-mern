@@ -4,11 +4,11 @@ export const REFRESH_COOKIE = 'refreshToken'
 
 const refreshMaxAgeMs = 7 * 24 * 60 * 60 * 1000
 
-/** Shared cookie options — httpOnly; Secure + SameSite in prod. */
+/** Shared cookie options — httpOnly; Secure + SameSite=None in prod (cross-origin SPA). */
 const cookieOptions = {
   httpOnly: true,
   secure: env.isProd,
-  sameSite: env.isProd ? 'strict' : 'lax',
+  sameSite: env.isProd ? 'none' : 'lax',
   path: '/api/auth',
 }
 

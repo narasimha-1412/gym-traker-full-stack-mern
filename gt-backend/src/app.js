@@ -9,6 +9,9 @@ import apiRoutes from './routes/index.js'
 
 const app = express()
 
+// Render (and similar hosts) terminate TLS at a proxy; needed for Secure cookies
+app.set('trust proxy', 1)
+
 const localhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
 
 function isAllowedOrigin(origin) {

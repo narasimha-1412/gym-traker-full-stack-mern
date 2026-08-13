@@ -78,7 +78,7 @@ Never commit `.env`.
 ### Entry points
 
 - `src/server.js` — connect DB, then listen
-- `src/app.js` — Express app (Helmet, CORS + credentials, cookies, JSON limit, logger, routes, errors)
+- `src/app.js` — Express app (trust proxy, Helmet, CORS + credentials, cookies, JSON limit, logger, routes, errors)
 
 ### Config
 
@@ -122,11 +122,12 @@ Never commit `.env`.
 ### HTTP hardening
 
 - **Helmet** — sets common security headers (e.g. `X-Content-Type-Options`, frame guards)
+- **`trust proxy`** — `app.set('trust proxy', 1)` so Secure cookies work behind Render / similar TLS proxies
 ### CORS & cookies
 
 - **Dev**: `localhost` / `127.0.0.1` (any port) allowed; optional `CORS_ORIGINS`
 - **Prod** (`NODE_ENV=production`): `CORS_ORIGINS` required — only those origins + no-Origin tools
-- Refresh cookie: `httpOnly`; `secure` + `sameSite: 'strict'` in production; `path: /api/auth`
+- Refresh cookie: `httpOnly`; `secure` + `sameSite: 'none'` in production (SPA on a different origin); `path: /api/auth`
 
 ### API response envelope
 
@@ -249,7 +250,7 @@ gt-backend/
 
 - **DB**: MongoDB Atlas via Mongoose; success logged as `MongoDB connected`
 - **CORS**: Dev allows localhost; prod requires `CORS_ORIGINS` allowlist; `credentials: true`
-- **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'strict'`
+- **Cookies**: Refresh token `httpOnly`; prod uses `secure` + `sameSite: 'none'` (cross-origin SPA); `trust proxy` so Secure cookies work behind a TLS proxy
 - **Logging**: Each request logs `METHOD url status duration`; 4xx/5xx use `console.error`; unhandled errors log message + stack (5xx)
 - **Auth**: Access JWT (default **15m**, Bearer); refresh JWT in `httpOnly` cookie `refreshToken` (default **7d**, path `/api/auth`). **Single session per user** via `User.sessionId` (`sid` in both tokens): new login replaces `sessionId` and invalidates other devices; logout sets `sessionId` to `null`; `requireAuth` and refresh both check `sid`
 - **Users**: `role` `admin` \| `user`; `status` `active` \| `disabled`; `activeSplitId` (ObjectId \| null) — user’s current training split; password hashed with bcrypt; list via `POST /api/users/list` with `{ search }` (empty returns all; otherwise case-insensitive match on name or email); create always sets `role: 'user'` (not accepted from client); delete cascades that user’s splits/workouts/exercises and blocks admin/self

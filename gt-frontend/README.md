@@ -44,7 +44,7 @@ Vite is configured with `server.host: true` so the container is reachable at `ht
 | -------------- | -------- | ----------------------- | ------------------ |
 | `VITE_API_URL` | No       | `http://localhost:5000` | Backend API origin |
 
-In production, the page origin must be listed in the API’s `CORS_ORIGINS`, and `VITE_API_URL` must point at that API (HTTPS). Auth uses cookies (`withCredentials`), so CORS cannot be `*`.
+In production, the page origin must be listed in the API’s `CORS_ORIGINS`, and `VITE_API_URL` must point at that API (HTTPS). Auth uses cookies (`withCredentials`), so CORS cannot be `*`. The API sets the refresh cookie with `SameSite=None; Secure` so it is sent on cross-origin requests (e.g. Render static site + Render API).
 
 ## Conventions
 
@@ -94,6 +94,7 @@ Call chain: **store → `*.services.js` → `base/api.js` → `base/appAxios.js`
 ### Routing
 
 - Router: `src/router/index.js` (history mode)
+- Static hosts: `public/_redirects` rewrites all paths to `index.html` so refresh on `/workout/:id` etc. does not 404
 - App bootstraps session (`refresh` + `/me`) in `main.js` before mounting
 - Auth routes require `app.loggedIn`; guest routes (`/login`) redirect when already logged in
 - Admin routes (`/users`) require `app.isAdmin`
@@ -144,6 +145,8 @@ gt-frontend/
 ├── .dockerignore
 ├── .env.example
 ├── README.md
+├── public/
+│   └── _redirects
 └── src/
     ├── App.vue
     ├── main.js
@@ -225,7 +228,7 @@ Unknown paths redirect to `/`.
 
 ## Feature notes
 
-- **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
+- **Auth**: login via `auth.services` → `POST /api/auth/login`; access token in memory; refresh cookie via `withCredentials`; bootstrap uses refresh + `/me`; logout clears cookie + session. Prod cookie is `SameSite=None; Secure` so refresh works when the SPA and API are on different hosts. Backend enforces **one active session** (`sessionId`); a second login or logout invalidates other tabs/devices (401 → local session cleared)
 - **Users** (`/users`, admin): `users.services` list/create/toggle status/reset password/delete against `/api/users`; email auto-generated from name as camelCase `@gymtrakio.com` (e.g. `Tony Stark` → `tonyStark@gymtrakio.com`); create requires password (min 4; form prefilled with `GymTrakio123`); admin reset sets `GymTrakio123` and clears that user’s session; list/search via one call `POST /api/users/list` body `{ search }` (empty string = all; debounced 300ms, spinner in list while loading); per-user ⋮ menu for reset password / enable-disable / delete (non-admins only; confirm before delete)
 - **Dashboard** (`/`): tabs for **Workouts** (default) and **Splits**; progress ring shows active split name + workout completion for that split only; Splits tab uses radio selection for active split (switch snackbar + jump to Workouts); FAB / rename / delete for name-only create-edit on the current tab; workouts scoped to the active split via `/api/splits` + `/api/splits/:id/workouts`; reset progress unmarks all workouts and exercises in the active split. Domain terms: **Split → Workout → Exercise**
 - **Workout** (`/workout/:workoutId`): exercises CRUD under a workout via `/api/workouts/:id/exercises`, mark done; each exercise has its own `weight` + `weightUnit` (`kg`/`lb`) set in the create/edit dialog
