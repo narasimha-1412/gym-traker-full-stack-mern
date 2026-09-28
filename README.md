@@ -2,7 +2,10 @@
 
 A mobile-first gym workout tracker. Plan training **splits**, add **workouts** and **exercises** to each, mark them done as you train, and track progress from the dashboard.
 
-**Live demo (Vue):** https://gymtrakio-web.onrender.com/
+**Live demos** (same API, same data):
+
+- **React:** https://gymtrakio-web-react.onrender.com/
+- **Vue:** https://gymtrakio-web.onrender.com/
 
 > Hosted on Render's free tier — the first request after idle may take ~30–60 seconds while the API wakes up.
 
