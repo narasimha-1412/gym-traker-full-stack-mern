@@ -579,6 +579,7 @@ export default function WorkoutPage() {
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <TextField
               label="Name"
+              placeholder="e.g. Bench Press"
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               slotProps={{
@@ -595,6 +596,7 @@ export default function WorkoutPage() {
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
               <TextField
                 label="Weight"
+                placeholder="e.g. 60"
                 value={form.weight}
                 onChange={e => setWeight(e.target.value)}
                 onKeyDown={onWeightKeydown}
@@ -650,6 +652,7 @@ export default function WorkoutPage() {
             </Box>
             <TextField
               label="Description"
+              placeholder="Sets, reps, notes"
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               multiline

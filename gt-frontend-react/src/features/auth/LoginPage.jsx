@@ -165,6 +165,7 @@ export default function LoginPage() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2.5, mb: 2 }}>
           <TextField
             label="Email"
+            placeholder="you@gymtrakio.com"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -182,6 +183,7 @@ export default function LoginPage() {
           />
           <TextField
             label="Password"
+            placeholder="Enter your password"
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}

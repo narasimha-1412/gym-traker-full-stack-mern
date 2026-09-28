@@ -546,6 +546,7 @@ export default function DashboardPage() {
             <TextField
               autoFocus
               label={tab === 'splits' ? 'Split name' : 'Workout title'}
+              placeholder={tab === 'splits' ? 'e.g. Push Pull Legs' : 'e.g. Push Day'}
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submitAdd()}
@@ -589,6 +590,7 @@ export default function DashboardPage() {
             <TextField
               autoFocus
               label={editKind === 'split' ? 'Split name' : 'Workout title'}
+              placeholder={editKind === 'split' ? 'e.g. Push Pull Legs' : 'e.g. Push Day'}
               value={editTitle}
               onChange={e => setEditTitle(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && saveEdit()}

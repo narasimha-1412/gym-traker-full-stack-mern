@@ -304,6 +304,7 @@ export default function SettingsPage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 1.75 }}>
               <TextField
                 label="Username"
+                placeholder="Your name"
                 value={profile.name}
                 onChange={e => dispatch(profileFormSet({ name: e.target.value }))}
                 onKeyDown={e => e.key === 'Enter' && dispatch(saveProfile(profile.name))}
@@ -383,13 +384,29 @@ export default function SettingsPage() {
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 1.75 }}>
               {[
-                { key: 'current', label: 'Current password', icon: LockOutlinedIcon },
-                { key: 'next', label: 'New password', icon: LockPlusOutlinedIcon },
-                { key: 'confirm', label: 'Confirm new password', icon: LockCheckOutlinedIcon },
-              ].map(({ key, label, icon: Icon }) => (
+                {
+                  key: 'current',
+                  label: 'Current password',
+                  placeholder: 'Enter current password',
+                  icon: LockOutlinedIcon,
+                },
+                {
+                  key: 'next',
+                  label: 'New password',
+                  placeholder: 'At least 4 characters',
+                  icon: LockPlusOutlinedIcon,
+                },
+                {
+                  key: 'confirm',
+                  label: 'Confirm new password',
+                  placeholder: 'Re-enter new password',
+                  icon: LockCheckOutlinedIcon,
+                },
+              ].map(({ key, label, placeholder, icon: Icon }) => (
                 <TextField
                   key={key}
                   label={label}
+                  placeholder={placeholder}
                   type={show[key] ? 'text' : 'password'}
                   value={pw[key]}
                   onChange={e => dispatch(pwFormSet({ [key]: e.target.value }))}
@@ -453,6 +470,7 @@ export default function SettingsPage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 1.75 }}>
               <TextField
                 label="Max splits"
+                placeholder="1–100"
                 value={configs.maxSplits}
                 onChange={e => setConfigField('maxSplits', e.target.value)}
                 slotProps={{
@@ -470,6 +488,7 @@ export default function SettingsPage() {
               />
               <TextField
                 label="Max workouts per split"
+                placeholder="1–100"
                 value={configs.maxWorkoutsPerSplit}
                 onChange={e => setConfigField('maxWorkoutsPerSplit', e.target.value)}
                 slotProps={{
@@ -487,6 +506,7 @@ export default function SettingsPage() {
               />
               <TextField
                 label="Max exercises per workout"
+                placeholder="1–100"
                 value={configs.maxExercisesPerWorkout}
                 onChange={e => setConfigField('maxExercisesPerWorkout', e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && dispatch(saveConfigs(configs))}
@@ -545,6 +565,7 @@ export default function SettingsPage() {
             </OutlineButton>
             <TextField
               label="Paste JSON"
+              placeholder='{ "splits": [ ... ] }'
               value={bulkJson}
               onChange={e => dispatch(bulkJsonSet(e.target.value))}
               multiline

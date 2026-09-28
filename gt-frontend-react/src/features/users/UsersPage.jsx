@@ -131,6 +131,7 @@ export default function UsersPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 1.75 }}>
             <TextField
               label="Name"
+              placeholder="e.g. Rahul Kumar"
               value={name}
               onChange={e => dispatch(createFormSet({ name: e.target.value }))}
               onKeyDown={e => e.key === 'Enter' && dispatch(createUserAction())}
@@ -149,6 +150,7 @@ export default function UsersPage() {
               <TextField
                 label="Email"
                 type="email"
+                placeholder="Email"
                 value={generatedEmail}
                 disabled
                 slotProps={{
@@ -188,6 +190,7 @@ export default function UsersPage() {
             <Box sx={{ position: 'relative' }}>
               <TextField
                 label="Password"
+                placeholder="At least 4 characters"
                 type="text"
                 value={password}
                 onChange={e => dispatch(createFormSet({ password: e.target.value }))}
@@ -277,6 +280,7 @@ export default function UsersPage() {
           </Box>
           <TextField
             label="Search users"
+            placeholder="Search by name or email"
             value={search}
             onChange={e => dispatch(setUserSearch(e.target.value))}
             slotProps={{
