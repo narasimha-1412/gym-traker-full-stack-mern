@@ -17,6 +17,24 @@ services:
           target: /app
           action: sync
 
+  web-react:
+    depends_on:
+      - api
+    build: ./gt-frontend-react
+    ports:
+      - 5174:5174
+    environment:
+      VITE_API_URL: http://localhost:5000
+    develop:
+      watch:
+        - path: ./gt-frontend-react/package.json
+          action: rebuild
+        - path: ./gt-frontend-react/package-lock.json
+          action: rebuild
+        - path: ./gt-frontend-react
+          target: /app
+          action: sync
+
   api:
     build: ./gt-backend
     ports:
